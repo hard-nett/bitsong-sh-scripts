@@ -2,6 +2,20 @@
 
 This is a simple test in response to the PFM issue on the BitSong network.
 
+## Requirements
+
+### Install Hermes
+```bash
+# rustup update stable
+
+cargo install ibc-relayer-cli --bin hermes --locked
+```
+
+### Init Hermes
+```bash
+hermes --config hermes.toml config validate
+```
+
 ## Start
 ```bash
 # chain-1
