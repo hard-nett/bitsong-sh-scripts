@@ -10,16 +10,18 @@ hermes tx ft-transfer \
  --src-chain test-1 \
  --src-port transfer \
  --src-channel channel-0 \
- --amount 1000 \
+ --amount 1000000000 \
  --denom ubtsg
+
+sleep 2
 
 hermes tx ft-transfer \
  --denom ubtsg \
- --receiver cosmos1jwr34yvnkqkc0ddndnh9y8t94hlhn7rapfyags \
- --memo '{"forward": {"receiver": "cosmos1al3csagycya3l7ze3dk4345czw9vwgtjtsezut", "port": "transfer", "channel": "channel-1"}}' \
+ --receiver bitsong1x3s7sdrq6zg7r8l8apt9pstjfsg5a8vndxjlum \
+ --memo '{"forward": {"receiver": "bitsong1v6f23vwenxfd4s4wsaeww82gmryqd009603gtz", "port": "transfer", "channel": "channel-1"}}' \
  --timeout-seconds 120 \
- --dst-chain ibc-1 \
- --src-chain ibc-0 \
+ --dst-chain test-2 \
+ --src-chain test-1 \
  --src-port transfer \
  --src-channel channel-0 \
- --amount 2500
+ --amount 2000000000
