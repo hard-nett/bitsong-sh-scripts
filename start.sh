@@ -27,9 +27,13 @@ $BINARY --home $CHAINDIR/$CHAINID keys add validator $KEYRING --output json > $C
 sleep 1
 $BINARY --home $CHAINDIR/$CHAINID keys add user $KEYRING --output json > $CHAINDIR/$CHAINID/key_seed.json 2>&1
 sleep 1
+$BINARY --home $CHAINDIR/$CHAINID keys add relayer $KEYRING --output json > $CHAINDIR/$CHAINID/relayer_seed.json 2>&1
+sleep 1
 $BINARY --home $CHAINDIR/$CHAINID add-genesis-account $($BINARY --home $CHAINDIR/$CHAINID keys $KEYRING show user -a) $coins
 sleep 1
 $BINARY --home $CHAINDIR/$CHAINID add-genesis-account $($BINARY --home $CHAINDIR/$CHAINID keys $KEYRING show validator -a) $coins
+sleep 1
+$BINARY --home $CHAINDIR/$CHAINID add-genesis-account $($BINARY --home $CHAINDIR/$CHAINID keys $KEYRING show relayer -a) $coins
 sleep 1
 $BINARY --home $CHAINDIR/$CHAINID gentx validator $delegate $KEYRING --chain-id $CHAINID
 sleep 1
@@ -45,7 +49,7 @@ sed -i 's/timeout_propose = "3s"/timeout_propose = "1s"/g' $CHAINDIR/$CHAINID/co
 sed -i 's/index_all_keys = false/index_all_keys = true/g' $CHAINDIR/$CHAINID/config/config.toml
 #sed -i 's/enable = false/enable = true/g' $CHAINDIR/$CHAINID/config/app.toml
 #sed -i 's/swagger = false/swagger = true/g' $CHAINDIR/$CHAINID/config/app.toml
-sed -i 's/"voting_period": "172800s"/"voting_period": "20s"/g' $CHAINDIR/$CHAINID/config/genesis.json
+sed -i 's/"voting_period": "172800s"/"voting_period": "120s"/g' $CHAINDIR/$CHAINID/config/genesis.json
 sed -i 's/"stake"/"ubtsg"/g' $CHAINDIR/$CHAINID/config/genesis.json
 
 echo "Starting $CHAINID in $CHAINDIR..."
