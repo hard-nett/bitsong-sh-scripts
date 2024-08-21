@@ -13,7 +13,7 @@ cargo install ibc-relayer-cli --bin hermes --locked
 
 ### Init Hermes
 ```bash
-hermes --config hermes.toml config validate
+./hermes-init.sh
 ```
 
 ## Start
@@ -28,4 +28,9 @@ hermes --config hermes.toml config validate
 ## Stop
 ```bash
 ./stop.sh bitsongd
+```
+
+## Start Hermes
+```bash
+hermes start
 ```
