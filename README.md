@@ -1,8 +1,8 @@
-# bitsong-pfm-test
+# bitsong upgrade tests
 
 This is a simple test in response to the PFM issue on the BitSong network.
 
-## Requirements
+## Packet forward middleware Requirements
 
 ### Install Hermes
 ```bash
@@ -16,7 +16,7 @@ cargo install ibc-relayer-cli --bin hermes --locked
 ./hermes-init.sh
 ```
 
-## Start
+### Start
 ```bash
 # chain-1
 ./start.sh bitsongd test-1 ./data 26657 26656 6060 9090 ubtsg
@@ -25,12 +25,29 @@ cargo install ibc-relayer-cli --bin hermes --locked
 ./start.sh bitsongd test-2 ./data 27657 27656 7060 10090 ubtsg
 ```
 
-## Stop
+### Stop
 ```bash
 ./stop.sh bitsongd
 ```
 
-## Start Hermes
+### Start Hermes
 ```bash
 hermes start
+```
+
+## Chain Upgrade V0.17.0 -> V0.18.0 
+
+### Step 1
+```sh
+sh a.start-for-upgrade.sh
+```
+### Step 2: Submit upgrade
+```sh
+# run this as soon as the first blocks are printed in a new terminal
+sh b.upgrade.sh
+```
+### Step 3: Proceed With Upgrade
+```sh
+# run this once upgrade height is reached
+sh c.post-upgrade.sh
 ```
