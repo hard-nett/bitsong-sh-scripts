@@ -10,7 +10,6 @@ source ~/.profile
 GO_VERSION=$(go version | awk '{print $3}' | sed 's/go//')
 
 EXPECTED_VERSION="1.22.4"
-PLATFORM="darwin-arm64"
 
 if [ "$(printf '%s\n' "$GO_VERSION" "$EXPECTED_VERSION" | sort -V | head -n1)" == "$GO_VERSION" ]; then
   echo "Go version $GO_VERSION is less than the expected version $EXPECTED_VERSION. Exiting..."
@@ -66,19 +65,19 @@ $DAEMON_NAME config keyring-backend test
 rm -rf ../test-keys
 mkdir ../test-keys
 
-$DAEMON_NAME keys add validator $KEYRING --output json > ../test-keys/validator_seed.json 2>&1
+$DAEMON_NAME keys add validator --output json > ../test-keys/validator_seed.json 2>&1
 sleep 1
-$DAEMON_NAME keys add user $KEYRING --output json > ../test-keys/key_seed.json 2>&1
+$DAEMON_NAME keys add user --output json > ../test-keys/key_seed.json 2>&1
 sleep 1
-$DAEMON_NAME keys add relayer $KEYRING --output json > ../test-keys/relayer_seed.json 2>&1
+$DAEMON_NAME keys add relayer --output json > ../test-keys/relayer_seed.json 2>&1
 sleep 1
-$DAEMON_NAME add-genesis-account $($DAEMON_NAME keys $KEYRING show user -a) $coins
+$DAEMON_NAME add-genesis-account $($DAEMON_NAME keys show user -a) $coins
 sleep 1
-$DAEMON_NAME add-genesis-account $($DAEMON_NAME keys $KEYRING show validator -a) $coins
+$DAEMON_NAME add-genesis-account $($DAEMON_NAME keys show validator -a) $coins
 sleep 1
-$DAEMON_NAME add-genesis-account $($DAEMON_NAME keys $KEYRING show relayer -a) $coins
+$DAEMON_NAME add-genesis-account $($DAEMON_NAME keys show relayer -a) $coins
 sleep 1
-$DAEMON_NAME gentx validator $delegate $KEYRING --chain-id $CHAIN_ID
+$DAEMON_NAME gentx validator $delegate --chain-id $CHAIN_ID
 sleep 1
 $DAEMON_NAME collect-gentxs
 sleep 1
