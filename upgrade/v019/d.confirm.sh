@@ -12,7 +12,6 @@ DEL1ADDR=$(jq -r '.address' ./test-keys/relayer_seed.json)
 DEL2=$(jq -r '.name' ./test-keys/relayer_seed.json)
 DEL2ADDR=$(jq -r '.address' ./test-keys/relayer_seed.json)
 
-
 # - check rewards & new balance
 $DAEMON_NAME q bank balances $DEL1
 $DAEMON_NAME q bank balances $DEL2
