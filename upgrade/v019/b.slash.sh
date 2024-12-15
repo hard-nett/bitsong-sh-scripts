@@ -3,7 +3,7 @@
 VAL1_PID=$(pgrep -f bitsongd)
 echo "VAL1_PID: $VAL1_PID"
 
-DAEMON_NAME=$1
+BIND=$1
 CHAINID=$2
 CHAINDIR=$3
 
@@ -40,7 +40,7 @@ VAL2_P2P_PORT=26357
 
 
 # start the second validator
-VAL1_P2P_ADDR=$($DAEMON_NAME tendermint show-node-id --home $VAL1HOME)@localhost:$VAL1_P2P_PORT
+VAL1_P2P_ADDR=$($BIND tendermint show-node-id --home $VAL1HOME)@localhost:$VAL1_P2P_PORT
 
 bitsongd start --home $VAL2HOME &
 VAL2_PID=$!
@@ -49,14 +49,13 @@ echo "VAL2_PID: $VAL2_PID"
 # let val catch up
 sleep 3
 
-VAL1_OP_ADDR=$($DAEMON_NAME q staking validators --home $VAL1HOME -o json | jq -r '.validators[0].operator_address')
+VAL1_OP_ADDR=$($BIND q staking validators --home $VAL1HOME -o json | jq -r '.validators[0].operator_address')
 echo "VAL1_OP_ADDR: $VAL1_OP_ADDR"
-
 
 # get val addr from genesis?
 bitsongd tx staking create-validator \
     --amount=9000000000ubtsg \
-    --pubkey=$($DAEMON_NAME tendermint show-validator --home $VAL2HOME ) \
+    --pubkey=$($BIND tendermint show-validator --home $VAL2HOME ) \
     --moniker="VAL2" \
     --chain-id=$CHAINID \
     --home $VAL2HOME \
@@ -65,27 +64,29 @@ bitsongd tx staking create-validator \
     --commission-max-rate="0.20" \
     --commission-max-change-rate="0.01" \
     --min-self-delegation="1" \
+    --fees="200ubtsg" \
     -y
-
 sleep 6
 
-VAL2_OP_ADDR=$($DAEMON_NAME q staking validators --home $VAL2HOME -o json | jq -r '.validators[1].operator_address')
-
+VAL2_OP_ADDR=$($BIND q staking validators --home $VAL2HOME -o json | jq -r '.validators[1].operator_address')
 echo "VAL2_OP_ADDR: $VAL2_OP_ADDR"
 
 # create delegation to both validators from both delegators 
-$DAEMON_NAME tx staking delegate $VAL1_OP_ADDR 100000000ubtsg --from $DEL1 --gas auto --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -y
-$DAEMON_NAME tx staking delegate $VAL2_OP_ADDR  3000000000ubtsg --from $DEL2 --gas auto --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL2HOME  -y
+$BIND tx staking delegate $VAL1_OP_ADDR 100000000ubtsg --from $DEL1 --gas auto  --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -y
+$BIND tx staking delegate $VAL2_OP_ADDR  3000000000ubtsg --from $DEL2 --gas auto --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL2HOME  -y
 sleep 6
 # delegate from slashed del to non slashed val
-$DAEMON_NAME tx staking delegate $VAL2_OP_ADDR  100000000ubtsg --from $DEL1 --gas auto --gas-adjustment 1.2  --home $VAL1HOME --chain-id $CHAINID -y
+$BIND tx staking delegate $VAL2_OP_ADDR  100000000ubtsg --from $DEL1 --fees 200ubtsg --gas auto --gas-adjustment 1.2  --home $VAL1HOME --chain-id $CHAINID -y
 # stop bitsongd process for val2 for 1 block 
 kill $VAL1_PID
+
+# slash and jail validator
 sleep 60
 
-# restart val2 
-$DAEMON_NAME start --home $VAL1HOME
+# restart val1
+$BIND start --home $VAL1HOME
 sleep 6
-# confirm error exists with reward query
 
-echo $($DAEMON_HOME q distribution slashes VAL1_OP_ADDR 1 17)
+# confirm error exists with reward query
+SLASHING_EVENTS=$($DAEMON_HOME q distribution slashes $VAL1_OP_ADDR 1 17 )
+echo "SLASHING_EVENTS: $SLASHING_EVENTS"

@@ -16,14 +16,20 @@ sh b.slash.sh bitsongd test-1 ./data
 ```
 ### Step 3: propose vote and proceed with upgrade for both validators 
 ```sh
-# todo: sh c.update.sh 
+sh c.update.sh bitsongd test-1 ./data
 ```
 ### Step 4: Confirm
 ```sh
 # todo: sh d.confirm.sh
 ```
 
-# OPTION 2: Via Exports 
+## Step 5: Cleaning Up Test service 
+Once complete testing, you may want to kill any bitsongd processes that may be running:
+```sh
+pkill -f bitsongd
+```
+
+<!-- # OPTION 2: Via Exports 
 To verify the v019 upgradeHandler logic it performs as expected, we can apply the same logic while exporting the app state into a genesisDoc. This lets us perform calculations on the appstate after the network is migrated, specifically ensuring the calculated rewards is not different the actual.
 
 ## A. Create `export-corrupt.json` 
@@ -35,5 +41,5 @@ bitsongd export > export-corrupt.json
 To simulate the upgrade, we need to use the bitsong app that has the custom export cli function implemented:
 Using `v0.18.2-export` of bitsongd:
 ```sh
-bitsongd export > export-corrupt.json
-```
+bitsongd export > export-patched.json
+``` -->

@@ -1,74 +1,90 @@
-DAEMON_NAME=$1
+## get current process for bitsongd 
+# start validator and grab process id of bitsongd
+VAL1_PID=$(pgrep -f bitsongd)
+echo "VAL1_PID: $VAL1_PID"
+
+BIND=$1
 CHAINID=$2
 CHAINDIR=$3
 
 VAL1HOME=$CHAINDIR/$CHAINID/val1
 VAL2HOME=$CHAINDIR/$CHAINID/val2
 
-UPGRADE_VERSION_TAG=v019
-UPGRADE_VERSION_TITLE=v0.19.0
-UPGRADE_HEIGHT=20
-UPGRADE_INFO="https://raw.githubusercontent.com/permissionlessweb/networks/refs/heads/master/testnet/upgrades/$UPGRADE_VERSION_TITLE/cosmovisor.json -y"
-
-
-VAL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/validator1_seed.json)
-VAL1ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val1/test-keys/validator1_seed.json)
-VAL2=$(jq -r '.name'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.json)
-VAL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.json)
+UPGRADE_VERSION_TITLE="v0.20.0"
+UPGRADE_VERSION_TAG="v020"
+UPGRADE_INFO='{"binaries": {"linux/amd64": "https://github.com/bitsongofficial/go-bitsong/releases/download/v0.20.0/bitsongd"}}'
 
 DEL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/delegator1_seed.json)
 DEL1ADDR=$(jq -r '.address' $CHAINDIR/$CHAINID/val1/test-keys/delegator1_seed.json)
 DEL2=$(jq -r '.name'  $CHAINDIR/$CHAINID/val2/test-keys/delegator2_seed.json)
 DEL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/delegator2_seed.json)
+VAL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/validator1_seed.json)
+VAL1ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val1/test-keys/validator1_seed.json)
+VAL2=$(jq -r '.name'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.json)
+VAL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.json)
 
+####################################################################
+# UPGRADE
+# kill both bitsong services & move v0.19.0 patch into go bin, simulating a manual upgrade to a version with gov support
+####################################################################
 
-# kill bitsong service 
-pkill -f bitsongd 
+# pkill -f bitsongd
 
-# install v019 manually
-git checkout -b v0.19.0-patch &&
-make install && 
+# ## build v0.20.0 image in prep for upgrade 
+cd go-bitsong && && git checkout v019 && make install 
+cd ../ 
+sleep 1
 
-sleep 6
-# start both nodes again 
+# echo "start both validators again"
 bitsongd start --home $VAL1HOME &
 bitsongd start --home $VAL2HOME &
-
-# - query balance for checking rewards have been claimed post upgrade
-$DAEMON_NAME q distribution reward $DEL1 
-$DAEMON_NAME q bank balances $DEL1 
-$DAEMON_NAME q bank balances $DEL2
-
-# - propose upgrade 
-$DAEMON_NAME tx gov submit-proposal software-upgrade $UPGRADE_VERSION_TAG  --title="$UPGRADE_VERSION_TITLE" --description="upgrade test"  --from="$VAL1"  --deposit 5000000000ubtsg --gas auto --gas-adjustment 1.3 --chain-id $CHAIN_ID --upgrade-height $UPGRADE_HEIGHT --upgrade-info $UPGRADE_INFO
+echo "waiting for validators to print blocks"
 sleep 6
 
-# - vote upgrade 
-$DAEMON_NAME tx gov vote 1 yes  --from="$DEL1" --gas auto --gas-adjustment 1.2 -y --chain-id $CHAIN_ID
-$DAEMON_NAME tx gov vote 1 yes  --from="$DEL2" --gas auto --gas-adjustment 1.2 -y --chain-id $CHAIN_ID
-$DAEMON_NAME tx gov vote 1 yes  --from="$VAL1" --gas auto --gas-adjustment 1.2 -y --chain-id $CHAIN_ID
-$DAEMON_NAME tx gov vote 1 yes  --from="$VAL2" --gas auto --gas-adjustment 1.2 -y --chain-id $CHAIN_ID
+echo "querying rewards and balances pre upgrade"
+DEL1_PRE_UPGR_REWARD=$($BIND q distribution rewards $DEL1ADDR --output json  --home $VAL2HOME)
+DEL2_PRE_UPGR_REWARD=$($BIND q distribution rewards $DEL2ADDR --output json --home $VAL2HOME)
+DEL1_PRE_UPGR_BALANCE=$($BIND q bank balances $DEL1ADDR --home $VAL2HOME --output json)
+DEL2_PRE_UPGR_BALANCE=$($BIND q bank balances $DEL2ADDR --home $VAL1HOME --output json)
+# echo "DEL1_PRE_UPGR_REWARD: $DEL1_PRE_UPGR_REWARD"
+# echo "DEL2_PRE_UPGR_REWARD: $DEL2_PRE_UPGR_REWARD"
+# echo "DEL1_PRE_UPGR_BALANCE: $DEL1_PRE_UPGR_BALANCE"
+# echo "DEL2_PRE_UPGR_BALANCE: $DEL2_PRE_UPGR_BALANCE"
+
+LATEST_HEIGHT=$( $BIND status --home $VAL1HOME | jq -r '.SyncInfo.latest_block_height' )
+UPGRADE_HEIGHT=$(( $LATEST_HEIGHT + 10 ))
+# echo "$UPGRADE_HEIGHT"
 
 
-# wait until we get to upgrade height 
-while true; do
-  RESPONSE=$( $DAEMON_NAME q status )
-  BLOCK_HEIGHT=$( echo "$RESPONSE" | jq -r '.SyncInfo.latest_block_height' )
-  echo "Current block height: $BLOCK_HEIGHT"
-  if [ $BLOCK_HEIGHT -ge $UPGRADE_HEIGHT ]; then
-    echo "Upgrade height reached!"
-    break
-  fi
-  sleep 6
-done
+# echo "propose upgrade"
+$BIND tx gov submit-legacy-proposal software-upgrade v020 --upgrade-height $UPGRADE_HEIGHT --upgrade-info="$UPGRADE_INFO" --title $UPGRADE_VERSION_TITLE --description="upgrade test" --from $VAL1 --fees 1000ubtsg --deposit 5000000000ubtsg --gas auto --gas-adjustment 1.3 --no-validate --chain-id $CHAINID --home $VAL1HOME  -y
+sleep 6
 
-## move new binary into go bin folder 
-BIN_PATH=$(which $DAEMON_NAME)
-mv go-bitsong/bin/bitsongd $BIN_PATH
-$UPGRADE_HEIGHT
 
-#  kill daemon 10 seconds after we reach upgrade height
-sleep 10
-pkill -f bitsongd
-sleep 4
-$DAEMON_NAME start
+# echo "vote upgrade"
+$BIND tx gov vote 1 yes --from $DEL1 --gas auto --gas-adjustment 1.2 --fees 1000ubtsg --chain-id $CHAINID --home $VAL1HOME -y
+$BIND tx gov vote 1 yes --from $DEL2 --gas auto --gas-adjustment 1.2 --fees 1000ubtsg --chain-id $CHAINID --home $VAL2HOME -y
+$BIND tx gov vote 1 yes --from $VAL1 --gas auto --gas-adjustment 1.2 --fees 1000ubtsg --chain-id $CHAINID --home $VAL1HOME -y
+$BIND tx gov vote 1 yes --from $VAL2 --gas auto --gas-adjustment 1.2 --fees 1000ubtsg --chain-id $CHAINID --home $VAL2HOME -y
+sleep 12
+
+# echo "wait until upgrade height is reached"
+# while true; do
+#   HEIGHT=$( $BIND status --home $VAL1HOME | jq -r '.SyncInfo.latest_block_height' )
+#   if [ $HEIGHT -ge $UPGRADE_HEIGHT ]; then
+#     echo "Target height reached, killing bitsong services..."
+#     pkill -f bitsongd
+#     break
+#   fi
+#   sleep 1
+# done
+
+# sleep 2 
+# cd go-bitsong && git checkout v020 && make install
+
+# start both validators again 
+# sleep 6  
+# bitsongd start --home $VAL1HOME &
+# bitsongd start --home $VAL2HOME &
+# sleep 6   
+

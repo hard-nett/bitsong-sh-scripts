@@ -1,5 +1,5 @@
 # bitsongd sub-1 ./data 26657 26656 6060 9090 ubtsg
-DAEMON_NAME=$1
+BIND=$1
 CHAINID=$2
 CHAINDIR=$3
 
@@ -41,7 +41,7 @@ nonSlashedDelegation="100000000ubtsg" # 100
 delegate="1000000000ubtsg" # 1K
 
 rm -rf $VAL1HOME $VAL2HOME 
-# # - init, config, and start the network using v018 of bitsong.
+# - init, config, and start the network using v018 of bitsong.
 # if [ -d "go-bitsong" ]; then
 #   # Change into the existing directory
 #   cd go-bitsong
@@ -59,32 +59,33 @@ rm -rf $VAL1HOME $VAL2HOME
 # fi
 
 # ## build the v19 patch (gov msg)
-# git checkout v0.18.2-patch
+# git checkout v0.18.2-patch && 
 # make build
-
+# cd ../ &&
 
 rm -rf $VAL1HOME/test-keys
 rm -rf $VAL2HOME/test-keys
 
 
-$DAEMON_NAME init $CHAINID --overwrite --home $VAL1HOME --chain-id $CHAINID
+$BIND init $CHAINID --overwrite --home $VAL1HOME --chain-id $CHAINID
 sleep 1
-$DAEMON_NAME init $CHAINID --overwrite --home $VAL2HOME --chain-id $CHAINID
+$BIND init $CHAINID --overwrite --home $VAL2HOME --chain-id $CHAINID
 
 mkdir $VAL1HOME/test-keys
 mkdir $VAL2HOME/test-keys
-$DAEMON_NAME --home $VAL1HOME config keyring-backend test
+$BIND --home $VAL1HOME config keyring-backend test
 sleep 1
-$DAEMON_NAME --home $VAL2HOME config keyring-backend test
+$BIND --home $VAL2HOME config keyring-backend test
 # remove val2 genesis
-rm -rf $VAL2HOME/config/genesis.json
+rm -rf $VAL2HOME/config/genesis.json &&
 # modify val1 genesis 
 jq ".app_state.crisis.constant_fee.denom = \"ubtsg\" |
       .app_state.staking.params.bond_denom = \"ubtsg\" |
       .app_state.mint.params.blocks_per_year = \"20000000\" |
       .app_state.merkledrop.params.creation_fee.denom = \"ubtsg\" |
-      .app_state.gov.voting_params.voting_period = \"20s\" |
-      .app_state.gov.deposit_params.min_deposit[0].denom = \"ubtsg\" |
+      .app_state.gov.voting_params.voting_period = \"15s\" |
+      .app_state.gov.params.voting_period = \"15s\" |
+      .app_state.gov.params.min_deposit[0].denom = \"ubtsg\" |
       .app_state.fantoken.params.burn_fee.denom = \"ubtsg\" |
       .app_state.fantoken.params.issue_fee.denom = \"ubtsg\" |
       .app_state.slashing.params.signed_blocks_window = \"10\" |
@@ -94,47 +95,47 @@ jq ".app_state.crisis.constant_fee.denom = \"ubtsg\" |
 mv $VAL1HOME/config/tmp.json $VAL1HOME/config/genesis.json
 
 
-
-
-yes | $DAEMON_NAME  --home $VAL1HOME keys add validator1  --output json > $VAL1HOME/test-keys/validator1_seed.json 2>&1 
+# setup test keys.
+yes | $BIND  --home $VAL1HOME keys add validator1  --output json > $VAL1HOME/test-keys/validator1_seed.json 2>&1 
 sleep 1
-yes | $DAEMON_NAME --home $VAL2HOME keys add validator2  --output json > $VAL2HOME/test-keys/validator2_seed.json 2>&1
+yes | $BIND --home $VAL2HOME keys add validator2  --output json > $VAL2HOME/test-keys/validator2_seed.json 2>&1
 sleep 1
-yes | $DAEMON_NAME  --home $VAL1HOME keys add user    --output json > $VAL1HOME/test-keys/key_seed.json 2>&1
+yes | $BIND  --home $VAL1HOME keys add user    --output json > $VAL1HOME/test-keys/key_seed.json 2>&1
 sleep 1
-yes | $DAEMON_NAME  --home $VAL2HOME keys add relayer --output json > $VAL2HOME/test-keys/relayer_seed.json 2>&1
+yes | $BIND  --home $VAL2HOME keys add relayer --output json > $VAL2HOME/test-keys/relayer_seed.json 2>&1
 sleep 1
-yes | $DAEMON_NAME  --home $VAL1HOME keys add delegator1 --output json > $VAL1HOME/test-keys/delegator1_seed.json 2>&1
+yes | $BIND  --home $VAL1HOME keys add delegator1 --output json > $VAL1HOME/test-keys/delegator1_seed.json 2>&1
 sleep 1
-yes | $DAEMON_NAME  --home $VAL2HOME keys add delegator2  --output json > $VAL2HOME/test-keys/delegator2_seed.json 2>&1
+yes | $BIND  --home $VAL2HOME keys add delegator2  --output json > $VAL2HOME/test-keys/delegator2_seed.json 2>&1
 sleep 1
-$DAEMON_NAME --home $VAL1HOME genesis add-genesis-account $($DAEMON_NAME --home $VAL1HOME keys show user -a) $defaultCoins
+$BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL1HOME keys show user -a) $defaultCoins
 sleep 1
-$DAEMON_NAME --home $VAL1HOME genesis add-genesis-account $($DAEMON_NAME --home $VAL2HOME keys show relayer -a) $defaultCoins
+$BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL2HOME keys show relayer -a) $defaultCoins
 sleep 1
-$DAEMON_NAME --home $VAL1HOME genesis add-genesis-account $($DAEMON_NAME --home $VAL1HOME keys show validator1 -a) $defaultCoins
+$BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL1HOME keys show validator1 -a) $defaultCoins
 sleep 1
-$DAEMON_NAME --home $VAL1HOME genesis add-genesis-account $($DAEMON_NAME --home $VAL2HOME keys show validator2 -a) $defaultCoins
+$BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL2HOME keys show validator2 -a) $defaultCoins
 sleep 1
-$DAEMON_NAME --home $VAL1HOME genesis add-genesis-account $($DAEMON_NAME --home $VAL1HOME keys show delegator1 -a) $defaultCoins
+$BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL1HOME keys show delegator1 -a) $defaultCoins
 sleep 1
-$DAEMON_NAME --home $VAL1HOME genesis add-genesis-account $($DAEMON_NAME --home $VAL2HOME keys show delegator2 -a) $defaultCoins
+$BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL2HOME keys show delegator2 -a) $defaultCoins
 sleep 1
-$DAEMON_NAME --home $VAL1HOME genesis gentx validator1 $delegate --chain-id $CHAINID 
+$BIND --home $VAL1HOME genesis gentx validator1 $delegate --chain-id $CHAINID 
 sleep 1
-$DAEMON_NAME genesis collect-gentxs --home $VAL1HOME
+$BIND genesis collect-gentxs --home $VAL1HOME
 sleep 1
 cp $VAL1HOME/config/genesis.json $VAL2HOME/config/genesis.json
+VAL1_P2P_ADDR=$($BIND tendermint show-node-id --home $VAL1HOME)@localhost:$VAL1_P2P_PORT
+
 
 # app & config modiifications
-VAL1_P2P_ADDR=$($DAEMON_NAME tendermint show-node-id --home $VAL1HOME)@localhost:$VAL1_P2P_PORT
-
+# config.toml
 sed -i.bak -e "s/^proxy_app *=.*/proxy_app = \"tcp:\/\/127.0.0.1:$VAL1_PROXY_APP_PORT\"/g" $VAL1HOME/config/config.toml &&
 sed -i.bak "/^\[rpc\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/127.0.0.1:$VAL1_RPC_PORT\"/" $VAL1HOME/config/config.toml &&
 sed -i.bak "/^\[rpc\]/,/^\[/ s/address.*/address = \"tcp:\/\/127.0.0.1:$VAL1_RPC_PORT\"/" $VAL1HOME/config/config.toml &&
 sed -i.bak "/^\[p2p\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/0.0.0.0:$VAL1_P2P_PORT\"/" $VAL1HOME/config/config.toml &&
 sed -i.bak -e "s/^grpc_laddr *=.*/grpc_laddr = \"\"/g" $VAL1HOME/config/config.toml &&
-
+# val2
 sed -i.bak -e "s/^proxy_app *=.*/proxy_app = \"tcp:\/\/127.0.0.1:$VAL2_PROXY_APP_PORT\"/g" $VAL2HOME/config/config.toml &&
 sed -i.bak "/^\[rpc\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/127.0.0.1:$VAL2_RPC_PORT\"/" $VAL2HOME/config/config.toml &&
 sed -i.bak "/^\[rpc\]/,/^\[/ s/address.*/address = \"tcp:\/\/127.0.0.1:$VAL2_RPC_PORT\"/" $VAL2HOME/config/config.toml &&
@@ -142,18 +143,20 @@ sed -i.bak "/^\[p2p\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/0.0.0.0:$VAL2_P2P_PORT\
 sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$VAL1_P2P_ADDR\"/" $VAL2HOME/config/config.toml &&
 sed -i.bak -e "s/^grpc_laddr *=.*/grpc_laddr = \"\"/g" $VAL2HOME/config/config.toml &&
 
-
-sed -i.bak "/^\[api\]/,/^\[/ s/address.*/address = \"localhost:$VAL1_API_PORT\"/" $VAL1HOME/config/app.toml &&
+# app.toml
+sed -i.bak "/^\[api\]/,/^\[/ s/minimum-gas-prices.*/minimum-gas-prices = \"0.0ubtsg\"/" $VAL1HOME/config/app.toml &&
+sed -i.bak "/^\[api\]/,/^\[/ s/address.*/address = \"tcp:\/\/0.0.0.0:$VAL1_API_PORT\"/" $VAL1HOME/config/app.toml &&
 sed -i.bak "/^\[grpc\]/,/^\[/ s/address.*/address = \"localhost:$VAL1_GRPC_PORT\"/" $VAL1HOME/config/app.toml &&
 sed -i.bak "/^\[grpc-web\]/,/^\[/ s/address.*/address = \"localhost:$VAL1_GRPC_WEB_PORT\"/" $VAL1HOME/config/app.toml &&
-
-sed -i.bak "/^\[api\]/,/^\[/ s/address.*/address = \"localhost:$VAL2_API_PORT\"/" $VAL2HOME/config/app.toml &&
+# val2
+sed -i.bak "/^\[api\]/,/^\[/ s/minimum-gas-prices.*/minimum-gas-prices = \"0.0ubtsg\"/" $VAL2HOME/config/app.toml &&
+sed -i.bak "/^\[api\]/,/^\[/ s/address.*/address = \"tcp:\/\/0.0.0.0:$VAL2_API_PORT\"/" $VAL2HOME/config/app.toml &&
 sed -i.bak "/^\[grpc\]/,/^\[/ s/address.*/address = \"localhost:$VAL2_GRPC_PORT\"/" $VAL2HOME/config/app.toml &&
 sed -i.bak "/^\[grpc-web\]/,/^\[/ s/address.*/address = \"localhost:$VAL2_GRPC_WEB_PORT\"/" $VAL2HOME/config/app.toml &&
 
 
 # Start bitsong
 echo "Starting Genesis validator..."
-echo $($DAEMON_NAME tendermint show-node-id --home $VAL1HOME)
+echo $($BIND tendermint show-node-id --home $VAL1HOME)
 echo $($VAL1_P2P_ADDR)
-$DAEMON_NAME start --home $VAL1HOME
+$BIND start --home $VAL1HOME

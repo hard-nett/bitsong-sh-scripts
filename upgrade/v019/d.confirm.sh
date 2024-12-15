@@ -20,3 +20,6 @@ $DAEMON_NAME q distribution reward $DEL1
 # - confirm slashing events are registered by slashing again 
 $DAEMON_NAME status # 
 $DAEMON_NAME q distribution slashes $DEL1 1
+
+# confirm deleagtor 1 rewards can be queried 
+# confirm delegator 1 rewards were calculated and claimed correctly 
