@@ -48,11 +48,11 @@ if [ -d "go-bitsong" ]; then
   # Checkout the v0.18.1 branch
   git fetch
   # Pull the latest changes from the branch
-  git pull origin main
+  git pull origin v0.18.1
   make install 
 else
   # Clone the repository if it doesn't exist
-  git clone https://github.com/permissionlessweb/go-bitsong
+  git clone https://github.com/bitsongofficial/go-bitsong
   # Change into the cloned directory
   cd go-bitsong
   make install 

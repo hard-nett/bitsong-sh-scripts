@@ -28,12 +28,12 @@ VAL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.j
 # kill both bitsong services & move v0.19.0 patch into go bin, simulating a manual upgrade to a version with gov support
 ####################################################################
 
-pkill -f bitsongd
 
 # ## build v0.20.0 image in prep for upgrade 
-cd go-bitsong && && git checkout v019 && make install 
-cd ../ 
-sleep 1
+# pkill -f bitsongd
+# cd go-bitsong && git checkout v0.18.2-patch && make install 
+# cd ../ 
+# sleep 1
 
 # echo "start both validators again"
 bitsongd start --home $VAL1HOME &

@@ -1,6 +1,6 @@
-
-# - upgrade to new version 
-UPGRADE_HEIGHT=
+BIND=$1
+CHAINID=$2
+CHAINDIR=$3
 
 DEL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/delegator1_seed.json)
 DEL1ADDR=$(jq -r '.address' $CHAINDIR/$CHAINID/val1/test-keys/delegator1_seed.json)
@@ -10,6 +10,17 @@ VAL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/validator1_seed.json)
 VAL1ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val1/test-keys/validator1_seed.json)
 VAL2=$(jq -r '.name'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.json)
 VAL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.json)
+
+
+VAL1HOME=$CHAINDIR/$CHAINID/val1
+VAL2HOME=$CHAINDIR/$CHAINID/val2
+
+
+echo "start both validators again"
+bitsongd start --home $VAL1HOME &
+bitsongd start --home $VAL2HOME &
+echo "waiting for validators to print blocks"
+sleep 6
 
 # get balances for each addr prior to upgrade
 JQ_BAL=$(| jq -r '.balances[] | select(.denom == "ubtsg") |.amount')
