@@ -42,26 +42,25 @@ delegate="1000000000ubtsg" # 1K
 
 rm -rf $VAL1HOME $VAL2HOME 
 # - init, config, and start the network using v018 of bitsong.
-# if [ -d "go-bitsong" ]; then
-#   # Change into the existing directory
-#   cd go-bitsong
-#   # Checkout the v0.18.1 branch
-#   git fetch
-#   # Pull the latest changes from the branch
-#   git pull origin v0.18.1
-#   make install 
-# else
-#   # Clone the repository if it doesn't exist
-#   git clone -b v0.18.1 https://github.com/bitsongofficial/go-bitsong
-#   # Change into the cloned directory
-#   cd go-bitsong
-#   make install 
-# fi
+if [ -d "go-bitsong" ]; then
+  # Change into the existing directory
+  cd go-bitsong
+  # Checkout the v0.18.1 branch
+  git fetch
+  # Pull the latest changes from the branch
+  git pull origin main
+  make install 
+else
+  # Clone the repository if it doesn't exist
+  git clone https://github.com/permissionlessweb/go-bitsong
+  # Change into the cloned directory
+  cd go-bitsong
+  make install 
+fi
 
 # ## build the v19 patch (gov msg)
-# git checkout v0.18.2-patch && 
-# make build
-# cd ../ &&
+# git checkout v019 && make build
+cd ../ &&
 
 rm -rf $VAL1HOME/test-keys
 rm -rf $VAL2HOME/test-keys
@@ -82,6 +81,7 @@ rm -rf $VAL2HOME/config/genesis.json &&
 jq ".app_state.crisis.constant_fee.denom = \"ubtsg\" |
       .app_state.staking.params.bond_denom = \"ubtsg\" |
       .app_state.mint.params.blocks_per_year = \"20000000\" |
+      .app_state.mint.params.mint_denom = \"ubtsg\" |
       .app_state.merkledrop.params.creation_fee.denom = \"ubtsg\" |
       .app_state.gov.voting_params.voting_period = \"15s\" |
       .app_state.gov.params.voting_period = \"15s\" |

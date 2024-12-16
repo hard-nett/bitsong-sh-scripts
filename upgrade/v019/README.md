@@ -20,7 +20,7 @@ sh c.update.sh bitsongd test-1 ./data
 ```
 ### Step 4: Confirm
 ```sh
-# todo: sh d.confirm.sh
+sh d.confirm.sh bitsongd test-1 ./data
 ```
 
 ## Step 5: Cleaning Up Test service 
