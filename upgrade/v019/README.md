@@ -8,19 +8,19 @@
 
 ### Step 1: Configure nodes, keys, genesis,config, start Val1
 ```sh
-./a.start.sh bitsongd test-1 ./data
+./a.start.sh 
 ```
 ### Step 2: Start Val2, delegate to validators, kill Val1 and simulate slahing events, restart val1, confirm slashing event was registered
 ```sh
-sh b.slash.sh bitsongd test-1 ./data
+sh b.slash.sh 
 ```
 ### Step 3: propose vote and proceed with upgrade for both validators 
 ```sh
-sh c.update.sh bitsongd test-1 ./data
+sh c.update.sh 
 ```
 ### Step 4: Confirm
 ```sh
-sh d.confirm.sh bitsongd test-1 ./data
+sh d.confirm.sh  
 ```
 
 ## Step 5: Cleaning Up Test service 

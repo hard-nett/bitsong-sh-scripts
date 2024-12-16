@@ -1,7 +1,7 @@
 # bitsongd sub-1 ./data 26657 26656 6060 9090 ubtsg
-BIND=$1
-CHAINID=$2
-CHAINDIR=$3
+BIND=bitsongd
+CHAINID=test-1
+CHAINDIR=./data
 
 VAL1HOME=$CHAINDIR/$CHAINID/val1
 VAL2HOME=$CHAINDIR/$CHAINID/val2
@@ -42,25 +42,25 @@ delegate="1000000000ubtsg" # 1K
 
 rm -rf $VAL1HOME $VAL2HOME 
 # - init, config, and start the network using v018 of bitsong.
-if [ -d "go-bitsong" ]; then
-  # Change into the existing directory
-  cd go-bitsong
-  # Checkout the v0.18.1 branch
-  git fetch
-  # Pull the latest changes from the branch
-  git pull origin v0.18.1
-  make install 
-else
-  # Clone the repository if it doesn't exist
-  git clone https://github.com/bitsongofficial/go-bitsong
-  # Change into the cloned directory
-  cd go-bitsong
-  make install 
-fi
+# if [ -d "go-bitsong" ]; then
+#   # Change into the existing directory
+#   cd go-bitsong
+#   # Checkout the v0.18.1 branch
+#   git fetch
+#   # Pull the latest changes from the branch
+#   git pull origin v0.18.1
+#   make install 
+# else
+#   # Clone the repository if it doesn't exist
+#   git clone https://github.com/bitsongofficial/go-bitsong
+#   # Change into the cloned directory
+#   cd go-bitsong
+#   make install 
+# fi
 
 # ## build the v19 patch (gov msg)
 # git checkout v019 && make build
-cd ../ &&
+# cd ../ &&
 
 rm -rf $VAL1HOME/test-keys
 rm -rf $VAL2HOME/test-keys

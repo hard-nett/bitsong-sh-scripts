@@ -1,6 +1,6 @@
-BIND=$1
-CHAINID=$2
-CHAINDIR=$3
+BIND=bitsongd
+CHAINID=test-1
+CHAINDIR=./data
 
 DEL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/delegator1_seed.json)
 DEL1ADDR=$(jq -r '.address' $CHAINDIR/$CHAINID/val1/test-keys/delegator1_seed.json)
