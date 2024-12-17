@@ -35,11 +35,11 @@ VAL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.j
 # cd ../ 
 # sleep 1
 
-# echo "start both validators again"
-bitsongd start --home $VAL1HOME &
-bitsongd start --home $VAL2HOME &
-echo "waiting for validators to print blocks"
-sleep 6
+# # echo "start both validators again"
+# bitsongd start --home $VAL1HOME &
+# bitsongd start --home $VAL2HOME &
+# echo "waiting for validators to print blocks"
+# sleep 6
 
 echo "querying rewards and balances pre upgrade"
 DEL1_PRE_UPGR_REWARD=$($BIND q distribution rewards $DEL1ADDR --output json  --home $VAL2HOME)
@@ -54,8 +54,8 @@ echo "$UPGRADE_HEIGHT"
 echo "propose upgrade"
 $BIND tx gov submit-legacy-proposal software-upgrade v020 --upgrade-height $UPGRADE_HEIGHT --upgrade-info="$UPGRADE_INFO" \
     --title $UPGRADE_VERSION_TITLE --description="upgrade test" \
-    --from $VAL1 --fees 1000ubtsg --deposit 5000000000ubtsg --gas auto \
-    --gas-adjustment 1.3 --no-validate --chain-id $CHAINID --home $VAL1HOME  -y
+    --from $VAL2 --fees 1000ubtsg --deposit 5000000000ubtsg --gas auto \
+    --gas-adjustment 1.3 --no-validate --chain-id $CHAINID --home $VAL2HOME  -y
 sleep 6
 
 # echo "vote upgrade"

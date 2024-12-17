@@ -68,15 +68,17 @@ bitsongd tx staking create-validator \
     -y
 sleep 6
 
-VAL2_OP_ADDR=$($BIND q staking validators --home $VAL2HOME -o json | jq -r '.validators[1].operator_address')
+# if this value is the same as VAL1, lets choose the validator[0]
+VAL2_OP_ADDR=$($BIND q staking validators --home $VAL2HOME -o json | jq -r ".validators[] | select(.operator_address!= \"$VAL1_OP_ADDR\") |.operator_address" | head -1)
+
 echo "VAL2_OP_ADDR: $VAL2_OP_ADDR"
 
 # create delegation to both validators from both delegators 
-$BIND tx staking delegate $VAL1_OP_ADDR 100000000ubtsg --from $DEL1 --gas auto  --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -y
-$BIND tx staking delegate $VAL2_OP_ADDR  3000000000ubtsg --from $DEL2 --gas auto --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL2HOME  -y
+$BIND tx staking delegate $VAL1_OP_ADDR 99000000ubtsg --from $DEL1 --gas auto  --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -y
+$BIND tx staking delegate $VAL2_OP_ADDR  400000000ubtsg --from $DEL2 --gas auto --fees 400ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL2HOME  -y
 sleep 6
 # delegate from slashed del to non slashed val
-$BIND tx staking delegate $VAL2_OP_ADDR  100000000ubtsg --from $DEL1 --fees 200ubtsg --gas auto --gas-adjustment 1.2  --home $VAL1HOME --chain-id $CHAINID -y
+$BIND tx staking delegate $VAL2_OP_ADDR  100000000ubtsg --from $DEL1 --fees 400ubtsg --gas auto --gas-adjustment 1.2  --home $VAL1HOME --chain-id $CHAINID -y
 # stop bitsongd process for val2 for 1 block 
 kill $VAL1_PID
 
@@ -86,7 +88,3 @@ sleep 60
 # restart val1
 $BIND start --home $VAL1HOME
 sleep 6
-
-# confirm error exists with reward query
-SLASHING_EVENTS=$($DAEMON_HOME q distribution slashes $VAL1_OP_ADDR 1 17 )
-echo "SLASHING_EVENTS: $SLASHING_EVENTS"

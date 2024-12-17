@@ -24,7 +24,7 @@ sh d.confirm.sh
 ```
 
 ## Step 5: Cleaning Up Test service 
-Once complete testing, you may want to kill any bitsongd processes that may be running:
+Once complete testing, you may want to kill any bitsongd processes that may be running: 
 ```sh
 pkill -f bitsongd
 ```

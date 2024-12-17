@@ -38,7 +38,7 @@ echo "«««««««««««««««««««««««««««««««««««««
 
 defaultCoins="100000000000ubtsg"  # 100K
 nonSlashedDelegation="100000000ubtsg" # 100
-delegate="1000000000ubtsg" # 1K
+delegate="1000000ubtsg" # 1btsg
 
 rm -rf $VAL1HOME $VAL2HOME 
 # - init, config, and start the network using v018 of bitsong.
@@ -154,9 +154,6 @@ sed -i.bak "/^\[api\]/,/^\[/ s/address.*/address = \"tcp:\/\/0.0.0.0:$VAL2_API_P
 sed -i.bak "/^\[grpc\]/,/^\[/ s/address.*/address = \"localhost:$VAL2_GRPC_PORT\"/" $VAL2HOME/config/app.toml &&
 sed -i.bak "/^\[grpc-web\]/,/^\[/ s/address.*/address = \"localhost:$VAL2_GRPC_WEB_PORT\"/" $VAL2HOME/config/app.toml &&
 
-
 # Start bitsong
 echo "Starting Genesis validator..."
-echo $($BIND tendermint show-node-id --home $VAL1HOME)
-echo $($VAL1_P2P_ADDR)
 $BIND start --home $VAL1HOME
