@@ -369,15 +369,20 @@ echo "DEL1_PRE_UPGR_BALANCE:$DEL1_PRE_UPGR_BALANCE"
 echo "DEL2_PRE_UPGR_BALANCE:$DEL2_PRE_UPGR_BALANCE"
 echo "VAL1_PRE_UPGR_BALANCE:$VAL1_PRE_UPGR_BALANCE"
 echo "VAL2_PRE_UPGR_BALANCE:$VAL2_PRE_UPGR_BALANCE"
+echo "VAL2_PRE_UPGR_BALANCE:$VAL2_PRE_UPGR_BALANCE"
 sleep 1
 
 # kill nodes to upgrade to v0.20.1-print
 pkill -f bitsongd
 cd ../../../go-bitsong
-# git checkout v0.20.1-print
 make install 
-# cd ../
 cd ../bitsong-pfm-test/upgrade/v020/
+
+# pkill -f bitsongd
+# cd ../go-bitsong
+# git checkout v0.20.1-print
+# make install 
+# cd ../
 
 ####################################################################
 # C. CONFIRM
@@ -400,32 +405,35 @@ DEL1_POST_UPGR_BALANCE=$($BIND q bank balances $DEL1ADDR --home $VAL2HOME --outp
 DEL2_POST_UPGR_BALANCE=$($BIND q bank balances $DEL2ADDR --home $VAL2HOME --output json | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
 VAL1_POST_UPGR_BALANCE=$($BIND q bank balances $VAL1ADDR --home $VAL1HOME --output json | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
 VAL2_POST_UPGR_BALANCE=$($BIND q bank balances $VAL2ADDR --home $VAL2HOME --output json | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
+VAL1_POST_UPGR_OUT_REWARDS=$($BIND q distribution validator-outstanding-rewards $VAL1_OP_ADDR --output json | jq -r '.rewards[] | select(.denom == "ubtsg") | .amount')
+VAL2_POST_UPGR_OUT_REWARDS=$($BIND q distribution validator-outstanding-rewards $VAL2_OP_ADDR --output json | jq -r '.rewards[] | select(.denom == "ubtsg") | .amount')
 echo "DEL1_POST_UPGR_BALANCE: $DEL1_POST_UPGR_BALANCE"
 echo "DEL2_POST_UPGR_BALANCE:$DEL2_POST_UPGR_BALANCE"
 echo "VAL1_POST_UPGR_BALANCE:$VAL1_POST_UPGR_BALANCE"
 echo "VAL2_POST_UPGR_BALANCE:$VAL2_POST_UPGR_BALANCE"
+echo "VAL1_POST_UPGR_OUT_REWARDS:$VAL1_POST_UPGR_OUT_REWARDS"
+echo "VAL2_POST_UPGR_OUT_REWARDS:$VAL2_POST_UPGR_OUT_REWARDS"
 sleep 1
 
 echo "check rewards have been redeemed"
 DEL1_REWARDS=$($BIND q distribution rewards $DEL1ADDR --home $VAL1HOME --output json)
 DEL2_REWARDS=$($BIND q distribution rewards $DEL2ADDR --home $VAL1HOME --output json)
+sleep 1
 echo "DEL1_REWARDS:$DEL1_REWARDS"
 echo "DEL2_REWARDS:$DEL2_REWARDS"
 echo "VAL1_REWARDS:$VAL1_REWARDS"
-echo "VAL2_REWARDS:$VAL2_REWARDS"
+echo "VAL2_REWARDS:$VAL2_REWARDS"   
 sleep 1
-
 
 echo "redelegate from val1 to val2 "
 REDEL=$($BIND q staking delegation $DEL1ADDR $VAL1_OP_ADDR --home $VAL1HOME -o json | jq -r '.balance.amount')ubtsg
-$BIND tx staking redelegate $VAL1_OP_ADDR $VAL2_OP_ADDR $REDEL  \
+$BIND tx staking redelegate $VAL1_OP_ADDR $VAL2_OP_ADDR 98010000ubtsg  \
 --chain-id $CHAINID --home $CHAINDIR --from $VAL1 --home $VAL1HOME \
 --gas auto --gas-adjustment 1.4 --fees 10000ubtsg -y
-
 sleep 8
 
 echo "accumulate rewards and query rewards... "
-DEL1_PRE_MANU_CLAIM=$($BIND q bank balances $DEL1ADDR  --output json --home $VAL2HOME)
+DEL1_PRE_MANU_CLAIM=$($BIND q bank balances $DEL1ADDR --output json --home $VAL2HOME | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
 echo "DEL1_PRE_MANU_CLAIM:$DEL1_PRE_MANU_CLAIM"
 sleep 8
 
@@ -434,12 +442,12 @@ echo "claim rewards... "
 $BIND tx distribution withdraw-all-rewards \
 --chain-id $CHAINID --home $CHAINDIR --from $DEL1 --home $VAL1HOME \
 --gas auto --gas-adjustment 1.4 --fees 10000ubtsg -y
-
+ 
 sleep 6
 
 ## confirm withdraw went to correct address
 echo "confirm balance update... "
-DEL1_POST_MANU_CLAIM=$($BIND q bank balances $DEL1 --output json --home $VAL1HOME )
+DEL1_POST_MANU_CLAIM=$($BIND q bank balances $DEL1ADDR --home $VAL1HOME --output json | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
 echo "DEL1_POST_MANU_CLAIM:$DEL1_POST_MANU_CLAIM"
 
 sleep 1
