@@ -56,18 +56,6 @@ delegate="1000000ubtsg" # 1btsg
 ####################################################################
 
 rm -rf $VAL1HOME $VAL2HOME 
-if [ -d "go-bitsong" ]; then
-  cd go-bitsong
-  git fetch
-  git pull origin v0.20.3
-  make install 
-else
-  git clone https://github.com/bitsongofficial/go-bitsong
-  cd go-bitsong
-  make install 
-fi
-
-cd ..
 rm -rf $VAL1HOME/test-keys
 rm -rf $VAL2HOME/test-keys
 
@@ -288,6 +276,7 @@ POLYONE_TESTER_ID=5
 # init note
  $BIND tx wasm i $POLYONE_NOTE_ID '{"block_max_gas": "100000000" }' --from $DEL --home $VAL1HOME --chain-id $CHAINID_A --no-admin --label="note contract chain1" --fees 400000ubtsg --gas auto --gas-adjustment 1.3 -y 
  $BIND tx wasm i $POLYONE_NOTE_ID '{"block_max_gas": "100000000" }' --from $USER --home $VAL2HOME --chain-id $CHAINID_B --no-admin --label="note contract chain2" --fees 400000ubtsg --gas auto --gas-adjustment 1.3 -y
+
   sleep 5
 # init voice
  $BIND tx wasm i $POLYONE_VOICE_ID '{"proxy_code_id":"3","block_max_gas":"100000000" }' --from $DEL --home $VAL1HOME --chain-id $CHAINID_A --no-admin --label="voice contract chain1" -y --fees 400000ubtsg --gas auto --gas-adjustment 1.3
@@ -299,22 +288,27 @@ POLYONE_TESTER_ID=5
 sleep 6
 
 # get polytone contracts
-POLYONE_PROXY_ADDR_A=$($BIND q wasm lca $POLYONE_PROXY_ID --home $VAL1HOME -o json | jq -r .contracts[0])
-POLYONE_PROXY_ADDR_B=$($BIND q wasm lca $POLYONE_PROXY_ID --home $VAL2HOME -o json | jq -r .contracts[0])
+# POLYONE_PROXY_ADDR_A=$($BIND q wasm lca $POLYONE_PROXY_ID --home $VAL1HOME -o json | jq -r .contracts[0])
+# POLYONE_PROXY_ADDR_B=$($BIND q wasm lca $POLYONE_PROXY_ID --home $VAL2HOME -o json | jq -r .contracts[0])
+# echo "POLYONE_PROXY_ADDR_A: $POLYONE_PROXY_ADDR_A"
+# echo "POLYONE_PROXY_ADDR_B: $POLYONE_PROXY_ADDR_B"
 POLYONE_NOTE_ADDR_A=$($BIND q wasm lca $POLYONE_NOTE_ID  --home $VAL1HOME -o json | jq -r .contracts[0])
 POLYONE_NOTE_ADDR_B=$($BIND q wasm lca $POLYONE_NOTE_ID  --home $VAL2HOME -o json | jq -r .contracts[0])
 POLYONE_TESTER_ADDR_A=$($BIND q wasm lca $POLYONE_TESTER_ID --home $VAL1HOME -o json | jq -r .contracts[0])
 POLYONE_TESTER_ADDR_B=$($BIND q wasm lca $POLYONE_TESTER_ID --home $VAL2HOME -o json | jq -r .contracts[0])
 POLYONE_VOICE_ADDR_A=$($BIND q wasm lca $POLYONE_VOICE_ID  --home $VAL1HOME -o json | jq -r .contracts[0])
 POLYONE_VOICE_ADDR_B=$($BIND q wasm lca $POLYONE_VOICE_ID  --home $VAL2HOME -o json | jq -r .contracts[0])
-echo "POLYONE_PROXY_ADDR_A: $POLYONE_PROXY_ADDR_A"
-echo "POLYONE_PROXY_ADDR_B: $POLYONE_PROXY_ADDR_B"
 echo "POLYONE_NOTE_ADDR_A: $POLYONE_NOTE_ADDR_A"
 echo "POLYONE_NOTE_ADDR_B: $POLYONE_NOTE_ADDR_B"
 echo "POLYONE_TESTER_ADDR_A: $POLYONE_TESTER_ADDR_A"
 echo "POLYONE_TESTER_ADDR_B: $POLYONE_TESTER_ADDR_B"
 echo "POLYONE_VOICE_ADDR_A: $POLYONE_VOICE_ADDR_A"
 echo "POLYONE_VOICE_ADDR_B: $POLYONE_VOICE_ADDR_B"
+
+# init listener
+ $BIND tx wasm i $POLYONE_LISTENER_ID "{\"note\":\"$POLYONE_NOTE_ADDR_A\"}" --from $DEL --home $VAL1HOME --no-admin --label="listener contract chain1" --fees 400000ubtsg --gas auto --gas-adjustment 1.3 -y 
+ $BIND tx wasm i $POLYONE_LISTENER_ID "{\"note\":\"$POLYONE_NOTE_ADDR_B\"}" --from $DEL --home $VAL2HOME --no-admin --label="listener contract chain2" --fees 400000ubtsg --gas auto --gas-adjustment 1.3 -y 
+
 ## create channel 
 echo "starting relayer" 
 echo "Creating IBC transfer channel"
@@ -326,19 +320,27 @@ hermes create channel --a-chain $CHAINID_A --b-chain $CHAINID_B\
     --new-client-connection\
     --yes
 
-# wait for channel to be created
-# hermes create channel --a-chain $CHAINID_A --b-chain $CHAINID_B --a-port transfer --b-port transfer --new-client-connection --yes
-# hermes create channel --a-chain $CHAINID_A --b-chain $CHAINID_B --a-port transfer --b-port transfer --new-client-connection --yes
-# wait until new channel is created
-# sleep 30
+# start relayer
+hermes start & 
+HERMES_PID=$! 
+
 
 ####################################################################
 # C. POLYTONE INTEGRATION
 ####################################################################
 
 # send msg to note
-$BIND tx wasm e $POLYONE_NOTE_ADDR_A '{"execute":{"msgs":[],"timeout_seconds":100,"callback": {"receiver": '"$POLYONE_TESTER_ADDR_A"', "msg":"aGVsbG8K"}}}'--home $VAL1HOME --from $DEL -y --fees 400000ubtsg --gas auto --gas-adjustment 1.3
-$BIND tx wasm e $POLYONE_NOTE_ADDR_B '{"execute":{"msgs":[],"timeout_seconds":100,"callback": {"receiver": '"$POLYONE_NOTE_ADDR_B"', "msg":"aGVsbG8K"}}}'--home $VAL2HOME --from $DEL -y --fees 400000ubtsg --gas auto --gas-adjustment 1.3
+$BIND tx wasm e $POLYONE_NOTE_ADDR_A "{\"execute\":{\"msgs\":[],\"timeout_seconds\":\"100\",\"callback\": {\"receiver\": \"$POLYONE_TESTER_ADDR_A\", \"msg\":\"aGVsbG8K\"}}}" --home $VAL1HOME --from $DEL -y --fees 400000ubtsg --gas auto --gas-adjustment 1.3
+
+hermes create channel --a-chain $CHAINID_B --b-chain $CHAINID_A\
+    --a-port "wasm.$POLYONE_NOTE_ADDR_B"\
+    --b-port "wasm.$POLYONE_VOICE_ADDR_B"\
+    --order unordered\
+    --chan-version polytone-1\
+    --new-client-connection\
+    --yes
+$BIND tx wasm e $POLYONE_NOTE_ADDR_B "{\"execute\":{\"msgs\":[],\"timeout_seconds\":\"100\",\"callback\": {\"receiver\": \"$POLYONE_TESTER_ADDR_B\", \"msg\":\"aGVsbG8K\"}}}" --home $VAL2HOME --from $DEL -y --fees 400000ubtsg --gas auto --gas-adjustment 1.3
+
 
 # wait for packet to relay.
 sleep 60
