@@ -215,7 +215,7 @@ if [ -z "$(ls -A ./bin)" ]; then
   sh download.sh
   while [ -z "$(ls -A ./bin)" ]; do
     sleep 1
-  done
+done
 
 ## upload polytone 
   for contract in "${POLYTONE_CONTRACTS[@]}"; do
