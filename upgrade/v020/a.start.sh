@@ -122,9 +122,9 @@ jq ".app_state.crisis.constant_fee.denom = \"ubtsg\" |
 mv $VAL1HOME/config/tmp.json $VAL1HOME/config/genesis.json
 
 # setup test keys.
-yes | $BIND  --home $VAL1HOME keys add validator1  --output json > $VAL1HOME/test-keys/validator1_seed.json 2>&1 
+yes | $BIND  --home $VAL1HOME keys add validator1  --output json > $VAL1HOME/test-keys/val.json 2>&1 
 sleep 1
-yes | $BIND --home $VAL2HOME keys add validator2  --output json > $VAL2HOME/test-keys/validator2_seed.json 2>&1
+yes | $BIND --home $VAL2HOME keys add validator2  --output json > $VAL2HOME/test-keys/val.json 2>&1
 sleep 1
 yes | $BIND --home $VAL3HOME keys add validator3  --output json > $VAL3HOME/test-keys/validator3_seed.json 2>&1
 sleep 1
@@ -132,9 +132,9 @@ yes | $BIND  --home $VAL1HOME keys add user    --output json > $VAL1HOME/test-ke
 sleep 1
 yes | $BIND  --home $VAL2HOME keys add relayer --output json > $VAL2HOME/test-keys/relayer_seed.json 2>&1
 sleep 1
-yes | $BIND  --home $VAL1HOME keys add delegator1 --output json > $VAL1HOME/test-keys/delegator1_seed.json 2>&1
+yes | $BIND  --home $VAL1HOME keys add delegator1 --output json > $VAL1HOME/test-keys/del.json 2>&1
 sleep 1
-yes | $BIND  --home $VAL2HOME keys add delegator2  --output json > $VAL2HOME/test-keys/delegator2_seed.json 2>&1
+yes | $BIND  --home $VAL2HOME keys add delegator2  --output json > $VAL2HOME/test-keys/del.json 2>&1
 sleep 1
 $BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL1HOME keys show user -a) $defaultCoins
 sleep 1
@@ -161,14 +161,14 @@ VAL1_P2P_ADDR=$($BIND tendermint show-node-id --home $VAL1HOME)@localhost:$VAL1_
 
 
 # keys 
-DEL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/delegator1_seed.json)
-DEL1ADDR=$(jq -r '.address' $CHAINDIR/$CHAINID/val1/test-keys/delegator1_seed.json)
-DEL2=$(jq -r '.name'  $CHAINDIR/$CHAINID/val2/test-keys/delegator2_seed.json)
-DEL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/delegator2_seed.json)
-VAL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/validator1_seed.json)
-VAL1ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val1/test-keys/validator1_seed.json)
-VAL2=$(jq -r '.name'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.json)
-VAL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/validator2_seed.json)
+DEL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/del.json)
+DEL1ADDR=$(jq -r '.address' $CHAINDIR/$CHAINID/val1/test-keys/del.json)
+DEL2=$(jq -r '.name'  $CHAINDIR/$CHAINID/val2/test-keys/del.json)
+DEL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/del.json)
+VAL1=$(jq -r '.name' $CHAINDIR/$CHAINID/val1/test-keys/val.json)
+VAL1ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val1/test-keys/val.json)
+VAL2=$(jq -r '.name'  $CHAINDIR/$CHAINID/val2/test-keys/val.json)
+VAL2ADDR=$(jq -r '.address'  $CHAINDIR/$CHAINID/val2/test-keys/val.json)
 
 
 # app & config modiifications
@@ -429,7 +429,7 @@ echo "DEL1_PRE_MANU_CLAIM:$DEL1_PRE_MANU_CLAIM"
 sleep 8
 
 echo "claim rewards... "
-## withdraw all rewards for del1
+## withdraw all rewards for del
 $BIND tx distribution withdraw-all-rewards \
 --chain-id $CHAINID --home $CHAINDIR --from $DEL1 --home $VAL1HOME \
 --gas auto --gas-adjustment 1.4 --fees 10000ubtsg -y
