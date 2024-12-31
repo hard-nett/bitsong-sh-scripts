@@ -203,11 +203,6 @@ sed -i.bak "/^\[api\]/,/^\[/ s/minimum-gas-prices.*/minimum-gas-prices = \"0.0ub
 sed -i.bak "/^\[api\]/,/^\[/ s/address.*/address = \"tcp:\/\/0.0.0.0:$VAL2_API_PORT\"/" $VAL2HOME/config/app.toml &&
 sed -i.bak "/^\[grpc\]/,/^\[/ s/address.*/address = \"localhost:$VAL2_GRPC_PORT\"/" $VAL2HOME/config/app.toml &&
 sed -i.bak "/^\[grpc-web\]/,/^\[/ s/address.*/address = \"localhost:$VAL2_GRPC_WEB_PORT\"/" $VAL2HOME/config/app.toml &&
-# val3
-sed -i.bak "/^\[api\]/,/^\[/ s/minimum-gas-prices.*/minimum-gas-prices = \"0.0ubtsg\"/" $VAL3HOME/config/app.toml &&
-sed -i.bak "/^\[api\]/,/^\[/ s/address.*/address = \"tcp:\/\/0.0.0.0:$VAL3_API_PORT\"/" $VAL3HOME/config/app.toml &&
-sed -i.bak "/^\[grpc\]/,/^\[/ s/address.*/address = \"localhost:$VAL3_GRPC_PORT\"/" $VAL3HOME/config/app.toml &&
-sed -i.bak "/^\[grpc-web\]/,/^\[/ s/address.*/address = \"localhost:$VAL3_GRPC_WEB_PORT\"/" $VAL3HOME/config/app.toml &&
 
 # Start bitsong
 echo "Starting Genesis validator..."
@@ -220,11 +215,7 @@ sleep 7
 ####################################################################
 # B. SLASH
 ####################################################################
-
-
-# start the second validator
-VAL1_P2P_ADDR=$($BIND tendermint show-node-id --home $VAL1HOME)@localhost:$VAL1_P2P_PORT
-
+ 
 bitsongd start --home $VAL2HOME &
 VAL2_PID=$!
 echo "VAL2_PID: $VAL2_PID"
