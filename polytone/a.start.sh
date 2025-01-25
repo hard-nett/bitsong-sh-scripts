@@ -86,11 +86,13 @@ jq ".app_state.crisis.constant_fee.denom = \"ubtsg\" |
       .app_state.mint.params.mint_denom = \"ubtsg\" |
       .app_state.merkledrop.params.creation_fee.denom = \"ubtsg\" |
       .app_state.gov.voting_params.voting_period = \"15s\" |
+      .app_state.gov.voting_params.voting_period = \"15s\" |
       .app_state.gov.params.voting_period = \"15s\" |
+      .app_state.gov.params.expedited_voting_period = \"12s\" |
       .app_state.gov.params.min_deposit[0].denom = \"ubtsg\" |
       .app_state.fantoken.params.burn_fee.denom = \"ubtsg\" |
       .app_state.fantoken.params.issue_fee.denom = \"ubtsg\" |
-      .app_state.slashing.params.signed_blocks_window = \"10\" |
+      .app_state.slashing.params.signed_blocks_window = \"15\" |
       .app_state.slashing.params.min_signed_per_window = \"0.500000000000000000\" |
       .app_state.fantoken.params.mint_fee.denom = \"ubtsg\"" $VAL1HOME/config/genesis.json > $VAL1HOME/config/tmp.json
 # give val2 genesis optimized genesis
@@ -113,7 +115,6 @@ yes | $BIND  --home $VAL2HOME keys add $DEL  --output json > $VAL2HOME/$DELFILE 
 sleep 1
 yes | $BIND  --home $VAL1HOME keys add $RELAYER  --output json > $VAL1HOME/$RELAYERFILE 2>&1
 sleep 1
-
 RELAYERADDR=$(jq -r '.address' $VAL1HOME/$RELAYERFILE)
 DEL1ADDR=$(jq -r '.address' $VAL1HOME/$DELFILE)
 DEL2ADDR=$(jq -r '.address'  $VAL2HOME/$DELFILE)
