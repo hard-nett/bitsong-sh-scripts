@@ -40,7 +40,7 @@ VAL3_P2P_PORT=26456
 # upgrade details
 UPGRADE_VERSION_TITLE="v0.20.0"
 UPGRADE_VERSION_TAG="v020"
-UPGRADE_INFO='{"binaries": {"linux/amd64": "https://github.com/bitsongofficial/go-bitsong/releases/download/v0.20.0/bitsongd"}}'
+UPGRADE_INFO='{"binaries": {"linux/amd64": "https://github.com/bitsongofficial/go-bitsong/releases/download/v0.20.4/bitsongd"}}'
 
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
@@ -49,7 +49,6 @@ echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
 echo "Creating $BINARY instance for VAL1: home=$VAL1HOME | chain-id=$CHAINID | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
 echo "Creating $BINARY instance for VAL2: home=$VAL2HOME | chain-id=$CHAINID | p2p=:$VAL2_P2P_PORT | rpc=:$VAL2_RPC_PORT | profiling=:$VAL2_PPROF_PORT | grpc=:$VAL2_GRPC_PORT"
-echo "Creating $BINARY instance for VAL2: home=$VAL3HOME | chain-id=$CHAINID | p2p=:$VAL3_P2P_PORT | rpc=:$VAL3_RPC_PORT | profiling=:$VAL3_PPROF_PORT | grpc=:$VAL3_GRPC_PORT"
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
@@ -61,49 +60,34 @@ delegate="1000000ubtsg" # 1btsg
 
 rm -rf $VAL1HOME $VAL2HOME 
 # - init, config, and start the network using v018 of bitsong.
-if [ -d "go-bitsong" ]; then
-  # Change into the existing directory
-  cd go-bitsong
-  # Checkout the v0.18.1 branch
-  git fetch
-  # Pull the latest changes from the branch
-  git pull origin v0.18.1
-  make install 
-else
-  # Clone the repository if it doesn't exist
-  git clone https://github.com/bitsongofficial/go-bitsong
-  # Change into the cloned directory
-  cd go-bitsong
-  make install 
-fi
-
-# ## build the v19 patch (gov msg)
-# git checkout v019 && make build
+# Clone the repository if it doesn't exist
+git clone https://github.com/bitsongofficial/go-bitsong
+# Change into the cloned directory
+cd go-bitsong
+# Checkout the v0.18.1 branch
+git fetch
+# Pull the latest changes from the branch
+git pull origin v0.20.4-broken-hooks.DONT_USE
+make install 
 cd ../ &&
 
 rm -rf $VAL1HOME/test-keys
-rm -rf $VAL2HOME/test-keys
-rm -rf $VAL3HOME/test-keys
+rm -rf $VAL2HOME/test-key
 
 $BIND init $CHAINID --overwrite --home $VAL1HOME --chain-id $CHAINID
 sleep 1
 $BIND init $CHAINID --overwrite --home $VAL2HOME --chain-id $CHAINID
-sleep 1
-$BIND init $CHAINID --overwrite --home $VAL3HOME --chain-id $CHAINID
 
 mkdir $VAL1HOME/test-keys
 mkdir $VAL2HOME/test-keys
-mkdir $VAL3HOME/test-keys
 
 $BIND --home $VAL1HOME config keyring-backend test
 sleep 1
 $BIND --home $VAL2HOME config keyring-backend test
 sleep 1
-$BIND --home $VAL3HOME config keyring-backend test
 
 # remove val2 genesis
 rm -rf $VAL2HOME/config/genesis.json &&
-rm -rf $VAL3HOME/config/genesis.json &&
 # modify val1 genesis 
 jq ".app_state.crisis.constant_fee.denom = \"ubtsg\" |
       .app_state.staking.params.bond_denom = \"ubtsg\" |
@@ -126,8 +110,6 @@ yes | $BIND  --home $VAL1HOME keys add validator1  --output json > $VAL1HOME/tes
 sleep 1
 yes | $BIND --home $VAL2HOME keys add validator2  --output json > $VAL2HOME/test-keys/val.json 2>&1
 sleep 1
-yes | $BIND --home $VAL3HOME keys add validator3  --output json > $VAL3HOME/test-keys/validator3_seed.json 2>&1
-sleep 1
 yes | $BIND  --home $VAL1HOME keys add user    --output json > $VAL1HOME/test-keys/key_seed.json 2>&1
 sleep 1
 yes | $BIND  --home $VAL2HOME keys add relayer --output json > $VAL2HOME/test-keys/relayer_seed.json 2>&1
@@ -144,8 +126,6 @@ $BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL1HOME keys
 sleep 1
 $BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL2HOME keys show validator2 -a) $defaultCoins
 sleep 1
-$BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL3HOME keys show validator3 -a) $defaultCoins
-sleep 1
 $BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL1HOME keys show delegator1 -a) $defaultCoins
 sleep 1
 $BIND --home $VAL1HOME genesis add-genesis-account $($BIND --home $VAL2HOME keys show delegator2 -a) $defaultCoins
@@ -156,7 +136,6 @@ $BIND genesis collect-gentxs --home $VAL1HOME
 sleep 1
 
 cp $VAL1HOME/config/genesis.json $VAL2HOME/config/genesis.json
-cp $VAL1HOME/config/genesis.json $VAL3HOME/config/genesis.json
 VAL1_P2P_ADDR=$($BIND tendermint show-node-id --home $VAL1HOME)@localhost:$VAL1_P2P_PORT
 
 
@@ -185,14 +164,6 @@ sed -i.bak "/^\[rpc\]/,/^\[/ s/address.*/address = \"tcp:\/\/127.0.0.1:$VAL2_RPC
 sed -i.bak "/^\[p2p\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/0.0.0.0:$VAL2_P2P_PORT\"/" $VAL2HOME/config/config.toml &&
 sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$VAL1_P2P_ADDR\"/" $VAL2HOME/config/config.toml &&
 sed -i.bak -e "s/^grpc_laddr *=.*/grpc_laddr = \"\"/g" $VAL2HOME/config/config.toml &&
-# val3
-sed -i.bak -e "s/^proxy_app *=.*/proxy_app = \"tcp:\/\/127.0.0.1:$VAL3_PROXY_APP_PORT\"/g" $VAL3HOME/config/config.toml &&
-sed -i.bak "/^\[rpc\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/127.0.0.1:$VAL3_RPC_PORT\"/" $VAL3HOME/config/config.toml &&
-sed -i.bak "/^\[rpc\]/,/^\[/ s/address.*/address = \"tcp:\/\/127.0.0.1:$VAL3_RPC_PORT\"/" $VAL3HOME/config/config.toml &&
-sed -i.bak "/^\[p2p\]/,/^\[/ s/laddr.*/laddr = \"tcp:\/\/0.0.0.0:$VAL3_P2P_PORT\"/" $VAL3HOME/config/config.toml &&
-sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$VAL1_P2P_ADDR\"/" $VAL3HOME/config/config.toml &&
-sed -i.bak -e "s/^grpc_laddr *=.*/grpc_laddr = \"\"/g" $VAL3HOME/config/config.toml &&
-
 # app.toml
 sed -i.bak "/^\[api\]/,/^\[/ s/minimum-gas-prices.*/minimum-gas-prices = \"0.0ubtsg\"/" $VAL1HOME/config/app.toml &&
 sed -i.bak "/^\[api\]/,/^\[/ s/address.*/address = \"tcp:\/\/0.0.0.0:$VAL1_API_PORT\"/" $VAL1HOME/config/app.toml &&
@@ -270,7 +241,7 @@ sleep 10
 # ## v0.19.0 image in prep for upgrade 
 pkill -f bitsongd
 cd go-bitsong
-git checkout v0.19.0
+git checkout v0.21.0
 make install 
 cd ../ 
 sleep 1
@@ -363,11 +334,10 @@ echo "VAL2_PRE_UPGR_BALANCE:$VAL2_PRE_UPGR_BALANCE"
 echo "VAL2_PRE_UPGR_BALANCE:$VAL2_PRE_UPGR_BALANCE"
 sleep 1
 
-# kill nodes to upgrade to v0.20.1-print
 pkill -f bitsongd
 cd ./go-bitsong
 make install 
-cd .. 
+cd ..
 
 # pkill -f bitsongd
 # cd ../go-bitsong
@@ -378,7 +348,7 @@ cd ..
 ####################################################################
 # C. CONFIRM
 ####################################################################
-echo "performing v20 upgrade"
+echo "performing v21 upgrade"
 sleep 6
 
 bitsongd start --home $VAL2HOME &

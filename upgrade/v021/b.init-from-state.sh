@@ -18,15 +18,7 @@ CHAINDIR=./data
 VAL1HOME=$CHAINDIR/$CHAINID_A/val1
 VAL2HOME=$CHAINDIR/$CHAINID_B/val1
 HERMES=~/.hermes
-
-POLYTONE_CONTRACTS=(
-  "polytone_listener.wasm"
-  "polytone_note.wasm"
-  "polytone_proxy.wasm"
-  "polytone_voice.wasm"
-  "polytone_tester.wasm"
-  )
-
+ 
 # Define the new ports for val1 on chain a
 VAL1_API_PORT=1317
 VAL1_GRPC_PORT=9090
@@ -103,7 +95,6 @@ VAL1B_ADDR=$(jq -r '.address'  $VAL2HOME/$VALFILE)
 USERAADDR=$(jq -r '.address' $VAL1HOME/$USERFILE)
 USERBADDR=$(jq -r '.address' $VAL2HOME/$USERFILE)
 
- 
 
  ####################################################################
 # 0. SNAPSHOT CONFIG 
@@ -113,14 +104,12 @@ echo "unzipping snapshot..."
 lz4 -c -d ./bin/bitsong_20730391.tar.lz4  | tar -x -C $VAL1HOME
 
 echo "creating export..."
-COMMAND="$BIND --home $VAL1HOME export --output-document export-v021.json"
+COMMAND="$BIND --home $VAL1HOME export --for-zero-height --output-document export-v021.json"
 $COMMAND
 
 echo "creating testnet-from-export"
 # create testnet-from-export
-$BIND init-from-state v021 export-v021.json $VAL\
- --old-moniker Cosmostation --old-account-addr bitsong1wf3q0a3uzechxvf27reuqts8nqm45sn29ykncv\
- --increase-coin-amount 10000000000000000 --home $VAL1HOME -o  
+$BIND init-from-state v021 export-v021.json $VAL --old-validator-addr bitsongvaloper1wf3q0a3uzechxvf27reuqts8nqm45sn2yq26g3 --increase-coin-amount 10000000000000000 --home $VAL1HOME -o  
 
 # copy genesis into second val 
 cp $VAL1HOME/config/genesis.json $VAL2HOME/config/genesis.json
