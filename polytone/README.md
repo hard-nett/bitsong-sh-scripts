@@ -11,3 +11,6 @@ To confirm the error is resolved, run this script with `v0.20.4`  of go-bitsong 
 ```sh 
 sh a.start.sh
 ```
+
+
+*you may need to runn `pkill -f hermes` once verified polytone msgs lifecycle in logs*
