@@ -64,10 +64,8 @@ rm -rf $VAL1HOME $VAL2HOME
 git clone https://github.com/bitsongofficial/go-bitsong
 # Change into the cloned directory
 cd go-bitsong
-# Checkout the v0.18.1 branch
-git fetch
-# Pull the latest changes from the branch
-git pull origin v0.20.4-broken-hooks.DONT_USE
+# Checkout the version of go-bitsong that doesnt submit slashing hooks
+git checkout v0.20.4-broken-hooks.DONT_USE 
 make install 
 cd ../ &&
 
@@ -223,6 +221,8 @@ $BIND tx staking delegate $VAL1_OP_ADDR 99000000ubtsg --from $DEL1 --gas auto  -
 $BIND tx staking delegate $VAL2_OP_ADDR 400000000ubtsg --from $DEL2 --gas auto --fees 800ubtsg --gas-adjustment 1.4 --chain-id $CHAINID --home $VAL2HOME -y
 sleep 6
 $BIND tx staking delegate $VAL2_OP_ADDR 99000000ubtsg --from $DEL1 --gas auto  --fees 800ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -y 
+
+
 # stop bitsongd process for val2 for 1 block 
 kill $VAL1_PID
 
@@ -241,7 +241,7 @@ sleep 10
 # ## v0.19.0 image in prep for upgrade 
 pkill -f bitsongd
 cd go-bitsong
-git checkout v0.21.0
+git checkout main
 make install 
 cd ../ 
 sleep 1
@@ -257,7 +257,7 @@ echo "$UPGRADE_HEIGHT"
 sleep 6
 
 echo "propose upgrade"
-$BIND tx gov submit-legacy-proposal software-upgrade v020 --upgrade-height $UPGRADE_HEIGHT --upgrade-info="$UPGRADE_INFO" --title $UPGRADE_VERSION_TITLE --description="upgrade test" --from user --fees 1000ubtsg --deposit 5000000000ubtsg --gas auto --gas-adjustment 1.3 --no-validate --home $VAL1HOME -y
+$BIND tx gov submit-legacy-proposal software-upgrade v021 --upgrade-height $UPGRADE_HEIGHT --upgrade-info="$UPGRADE_INFO" --title $UPGRADE_VERSION_TITLE --description="upgrade test" --from user --fees 1000ubtsg --deposit 5000000000ubtsg --gas auto --gas-adjustment 1.3 --no-validate --home $VAL1HOME -y
 sleep 6
 
 # echo "vote upgrade"
@@ -336,6 +336,7 @@ sleep 1
 
 pkill -f bitsongd
 cd ./go-bitsong
+git checkout hard-nett/v0.21-smart-accounts
 make install 
 cd ..
 
