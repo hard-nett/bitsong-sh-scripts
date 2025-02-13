@@ -1,4 +1,4 @@
-
+#!/bin/bash
 BIND=bitsongd
 CHAINID_A=test-1
 CHAINID_B=test-2
@@ -43,6 +43,9 @@ echo "Creating $BINARY instance for VAL2: home=$VAL2HOME | chain-id=$CHAINID_A |
 defaultCoins="100000000000ubtsg"  # 100K
 delegate="1000000ubtsg" # 1btsg
 
+
+export PATH=$PATH:/usr/local/go/bin
+source ~/.profile  # Or restart your shell
 
 ####################################################################
 # A. CHAINS CONFIG
@@ -103,13 +106,9 @@ echo "unzipping snapshot..."
 # create export 
 lz4 -c -d ./bin/bitsong_20730391.tar.lz4  | tar -x -C $VAL1HOME
 
-echo "creating export..."
-COMMAND="$BIND --home $VAL1HOME export --for-zero-height --output-document export-v021.json"
-$COMMAND
-
 echo "creating testnet-from-export"
 # create testnet-from-export
-$BIND init-from-state v021 export-v021.json $VAL --old-validator-addr bitsongvaloper1wf3q0a3uzechxvf27reuqts8nqm45sn2yq26g3 --increase-coin-amount 10000000000000000 --home $VAL1HOME -o  
+$BIND export --for-zero-height --output-document $VAL1HOME/config/genesis.json
 
 # copy genesis into second val 
 cp $VAL1HOME/config/genesis.json $VAL2HOME/config/genesis.json
