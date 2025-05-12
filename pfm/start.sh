@@ -40,15 +40,15 @@ $BINARY --home $CHAINDIR/$CHAINID keys add user $KEYRING --output json > $CHAIND
 sleep 1
 $BINARY --home $CHAINDIR/$CHAINID keys add relayer $KEYRING --output json > $CHAINDIR/$CHAINID/relayer_seed.json 2>&1
 sleep 1
-$BINARY --home $CHAINDIR/$CHAINID add-genesis-account $($BINARY --home $CHAINDIR/$CHAINID keys $KEYRING show user -a) $coins
+$BINARY --home $CHAINDIR/$CHAINID genesis add-genesis-account $($BINARY --home $CHAINDIR/$CHAINID keys $KEYRING show user -a) $coins
 sleep 1
-$BINARY --home $CHAINDIR/$CHAINID add-genesis-account $($BINARY --home $CHAINDIR/$CHAINID keys $KEYRING show validator -a) $coins
+$BINARY --home $CHAINDIR/$CHAINID genesis add-genesis-account $($BINARY --home $CHAINDIR/$CHAINID keys $KEYRING show validator -a) $coins
 sleep 1
-$BINARY --home $CHAINDIR/$CHAINID add-genesis-account $($BINARY --home $CHAINDIR/$CHAINID keys $KEYRING show relayer -a) $coins
+$BINARY --home $CHAINDIR/$CHAINID genesis add-genesis-account $($BINARY --home $CHAINDIR/$CHAINID keys $KEYRING show relayer -a) $coins
 sleep 1
-$BINARY --home $CHAINDIR/$CHAINID gentx validator $delegate $KEYRING --chain-id $CHAINID
+$BINARY --home $CHAINDIR/$CHAINID genesis gentx validator $delegate $KEYRING --chain-id $CHAINID
 sleep 1
-$BINARY --home $CHAINDIR/$CHAINID collect-gentxs
+$BINARY --home $CHAINDIR/$CHAINID genesis collect-gentxs
 sleep 1
 
 echo "Change settings in config.toml and genesis.json files..."

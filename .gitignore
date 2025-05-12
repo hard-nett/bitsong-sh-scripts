@@ -1,2 +1,6 @@
 data
 bins
+go-bitsong/*
+test-keys*
+*.json
+bin*

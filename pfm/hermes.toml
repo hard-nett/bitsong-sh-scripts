@@ -39,7 +39,7 @@ event_source = { mode = "push", url = "ws://127.0.0.1:26657/websocket", batch_de
 rpc_timeout = "10s"
 trusted_node = false
 account_prefix = "bitsong"
-key_name = "relayer_key_test_1"
+key_name = "relayer"
 key_store_type = "Test"
 store_prefix = "ibc"
 default_gas = 100000
@@ -66,7 +66,7 @@ event_source = { mode = "push", url = "ws://127.0.0.1:27657/websocket", batch_de
 rpc_timeout = "10s"
 trusted_node = false
 account_prefix = "bitsong"
-key_name = "relayer_key_test_2"
+key_name = "relayer"
 key_store_type = "Test"
 store_prefix = "ibc"
 default_gas = 100000
