@@ -365,8 +365,8 @@ sleep 1
 pkill -f bitsongd
 # rm -rf go-bitsong
 # git clone -b v0.22.0-rc https://github.com/permissionlessweb/go-bitsong
-git checkout v0.22.0-rc
 cd go-bitsong
+git checkout v0.22.0-rc
 make install 
 cd ..
 
