@@ -240,7 +240,6 @@ cd go-bitsong &&
 git checkout v0.23.0-rc
 make install 
 cd ..
-echo "Starting Bitsong to upgrade..."
 
 
 # Start bitsong
@@ -332,23 +331,23 @@ fi
 ## using protocolpool stream errors
 
 ## check block rewards go to distribution module accurately
-ABLOCK=$($BIND q distribution community-pool -o json | jq -r '.pool[0]' | sed 's/ubtsg$//' ) 
+ABLOCK=$($BIND q distribution community-pool --home $VAL1HOME -o json | jq -r '.pool[0]' | sed 's/ubtsg$//' ) 
 sleep 7
-BBLOCK=$($BIND q distribution community-pool -o json | jq -r '.pool[0]' | sed 's/ubtsg$//' ) 
+BBLOCK=$($BIND q distribution community-pool --home $VAL1HOME -o json | jq -r '.pool[0]' | sed 's/ubtsg$//' ) 
 if (( $(echo "$BBLOCK > $ABLOCK" | bc -l) == 0 )); then
   echo "Error: BBLOCK ($BBLOCK) is not greater than ABLOCK ($ABLOCK)"
   pkill -f bitsongd
   exit 1
 fi
 sleep 7
-OBLOCK=$($BIND q distribution community-pool -o json | jq -r '.pool[0]' | sed 's/ubtsg$//' ) 
+OBLOCK=$($BIND q distribution community-pool --home $VAL1HOME -o json | jq -r '.pool[0]' | sed 's/ubtsg$//' ) 
 if (( $(echo "$OBLOCK > $BBLOCK" | bc -l) == 0 )); then
   pkill -f bitsongd
   exit 1
 fi
 
 ## ensure funding community pool is okay 
-MSG_CODE=$($BIND tx distribution fund-community-pool $fundCommunityPool  --from="$DEL1" --gas auto --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -o json -y | jq -r '.code' )
+MSG_CODE=$($BIND tx distribution fund-community-pool $fundCommunityPool --from="$DEL1" --gas auto --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -o json -y | jq -r '.code' )
 [ $MSG_CODE -ne 0 ] && exit 1
 
 echo "COMMUNITY POOL PATCH APPLIED SUCCESSFULLY, ENDING TESTS"
