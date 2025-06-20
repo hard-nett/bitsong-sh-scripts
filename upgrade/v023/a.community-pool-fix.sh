@@ -46,7 +46,7 @@ git clone https://github.com/permissionlessweb/go-bitsong
 cd go-bitsong &&
 # # Checkout the version of go-bitsong that doesnt submit slashing hooks
 git checkout feat/rs-bitsong
-# make install 
+make install 
 cd ../ &&
 
 rm -rf $VAL1HOME/test-keys
@@ -230,14 +230,14 @@ sleep 7
 # C. CONFIRM
 ####################################################################
 echo "performing v023 upgrade"
-sleep 36
+sleep 25
 
 # # install v0.23
 pkill -f $BIND
 # rm -rf go-bitsong
 # git clone -b v0.23.0-rc https://github.com/permissionlessweb/go-bitsong
 cd go-bitsong && 
-# git checkout $UPGRADING_TO
+git checkout v0.23.0-rc
 make install 
 cd ..
 echo "Starting Bitsong to upgrade..."
