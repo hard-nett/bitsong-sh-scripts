@@ -79,9 +79,9 @@ jq ".app_state.crisis.constant_fee.denom = \"ubtsg\" |
 mv $VAL1HOME/config/tmp.json $VAL1HOME/config/genesis.json
 
 # setup test keys.
-yes | $BIND  --home $VAL1HOME keys add validator1  --output json > $VAL1HOME/test-keys/val.json 2>&1 
+yes | $BIND  --home $VAL1HOME keys add validator1 --output json > $VAL1HOME/test-keys/val.json 2>&1 
 sleep 1
-yes | $BIND  --home $VAL1HOME keys add user    --output json > $VAL1HOME/test-keys/user.json 2>&1
+yes | $BIND  --home $VAL1HOME keys add user --output json > $VAL1HOME/test-keys/user.json 2>&1
 sleep 1
 yes | $BIND  --home $VAL1HOME keys add delegator1 --output json > $VAL1HOME/test-keys/del.json 2>&1
 sleep 1
