@@ -143,7 +143,7 @@ ISSUE_FANTOKEN_TX_HASH=$($BIND tx fantoken issue --name="Kitty Token" --symbol="
 sleep 7
 
 
-FANTOKEN=$($BIND q tx "$ISSUE_FANTOKEN_TX_HASH" -o json | jq -r '.data' | xxd -r -p | awk -F '*' '/ft/ {print $2}')
+FANTOKEN=$($BIND q tx "$ISSUE_FANTOKEN_TX_HASH" -o json --home $VAL1HOME | jq -r '.data' | xxd -r -p | awk -F '*' '/ft/ {print $2}')
 echo "$FANTOKEN"
 sleep 6
 
@@ -194,7 +194,7 @@ cat <<EOF > "$VAL1HOME/upgrade.json"
 EOF
 
 echo "propose upgrade using expedited proposal..."
-$BIND tx gov submit-proposal $VAL1HOME/upgrade.json --gas auto --gas-adjustment 1.5 --fees="2000ubtsg" --chain-id=$CHAINID --home $VAL1HOME --from="$VAL1" -y
+$BIND tx gov submit-proposal $VAL1HOME/upgrade.json --gas auto --gas-adjustment 1.5 --fees="2000ubtsg" --chain-id=$CHAINID --home=$VAL1HOME --from="$VAL1" -y
 sleep 6
 
 # echo "vote upgrade"
