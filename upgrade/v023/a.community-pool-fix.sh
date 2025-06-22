@@ -64,7 +64,7 @@ jq ".app_state.crisis.constant_fee.denom = \"ubtsg\" |
       .app_state.staking.params.bond_denom = \"ubtsg\" |
       .app_state.mint.params.blocks_per_year = \"10000000\" |
       .app_state.mint.params.mint_denom = \"ubtsg\" |
-      .app_state.protocolpool.params.enabled_distribution_denoms[0] = \"ubtsg\" |
+      .app_state.protocolpool.params.enabled_distribution_denoms[0] = \"stake\" |
       .app_state.gov.voting_params.voting_period = \"30s\" |
       .app_state.gov.params.expedited_voting_period = \"10s\" | 
       .app_state.gov.params.voting_period = \"15s\" |
@@ -158,6 +158,11 @@ $BIND tx protocolpool fund-community-pool $fundCommunityPool  --from="$DEL1" --g
 ## try fund community pool via distribution module is expected to error 
 # $BIND tx distribution fund-community-pool $fundCommunityPool  --from="$DEL1" --gas auto --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -y 
 
+# we expect community pool query to work from protocolpool module
+PBLOCK=$($BIND q protocolpool community-pool --home $VAL1HOME -o json ) 
+echo "$PBLOCK"
+
+
 ####################################################################
 # C. UPGRADE
 ####################################################################
@@ -234,10 +239,8 @@ sleep 25
 
 # # install v0.23
 pkill -f $BIND
-# rm -rf go-bitsong
-# git clone -b v0.23.0-rc https://github.com/permissionlessweb/go-bitsong
 cd go-bitsong && 
-git checkout v0.23.0-rc
+git checkout v0.23.0-rc2
 make install 
 cd ..
 
@@ -347,8 +350,10 @@ if (( $(echo "$OBLOCK > $BBLOCK" | bc -l) == 0 )); then
 fi
 
 ## ensure funding community pool is okay 
-MSG_CODE=$($BIND tx distribution fund-community-pool $fundCommunityPool --from="$DEL1" --gas auto --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -o json -y | jq -r '.code' )
-[ $MSG_CODE -ne 0 ] && exit 1
+MSG_CODE=$($BIND tx distribution fund-community-pool $fundCommunityPool --from="$DEL1" --gas auto --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -o json -y | jq -r '.code')
+if [ -n "$MSG_CODE" ] && [ "$MSG_CODE" -ne 0 ]; then
+  exit 1
+fi
 
 echo "COMMUNITY POOL PATCH APPLIED SUCCESSFULLY, ENDING TESTS"
 pkill -f bitsongd
