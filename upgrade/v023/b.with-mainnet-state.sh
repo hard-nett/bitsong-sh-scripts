@@ -102,9 +102,9 @@ pkill -f $BIND
 # Clone the repository if it doesn't exist
 git clone https://github.com/permissionlessweb/go-bitsong
 # # Change into the cloned directory
-cd go-bitsong &&
+cd go-bitsong && git fetch &&
 # # Checkout the version of go-bitsong that doesnt submit slashing hooks
-git checkout v023
+git checkout main && git pull 
 make install 
 cd ../ &&
 
@@ -118,26 +118,31 @@ sleep 7
 ####################################################################
 # 0. CONFIRMING  
 ####################################################################
+PROTOCOL_POOL_ADDR=$($BIND q auth module-account protocolpool --home $VAL1HOME -o json | jq -r '.account.value.address')
+PROTOCOL_POOL_ESCROW_ADDR=$($BIND q auth module-account protocolpool_escrow --home $VAL1HOME -o json | jq -r '.account.value.address')
+DISTRIBUTION_MODULE_ADDR=$($BIND q auth module-account distribution --home $VAL1HOME -o json  | jq -r '.account.value.address')
+
+echo "PROTOCOL_POOL_ADDR: $PROTOCOL_POOL_ADDR"
+echo "DISTRIBUTION_MODULE_ADDR: $DISTRIBUTION_MODULE_ADDR"
+echo "PROTOCOL_POOL_ESCROW_ADDR: $PROTOCOL_POOL_ESCROW_ADDR"
 
 # get balances for each addr prior to upgrade
 POST_UPGRADE_PROTOCOL_POOL_BALANCE_BTSG=$($BIND q bank balances "$PROTOCOL_POOL_ADDR" --home $VAL1HOME --output json | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
-POST_UPGRADE_PROTOCOL_POOL_BALANCE_FANTOKEN=$($BIND q bank balances "$PROTOCOL_POOL_ADDR" --home $VAL1HOME --output json | jq -r".balances[] | select(.denom == \"$FANTOKEN\") | .amount")
 POST_UPGRADE_DISTRIBUTION_MODULE_BALANCE_BTSG=$($BIND q bank balances "$DISTRIBUTION_MODULE_ADDR" --home $VAL1HOME --output json | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
-POST_UPGRADE_DISTRIBUTION_MODULE_BALANCE_FANTOKEN=$($BIND q bank balances  "$DISTRIBUTION_MODULE_ADDR" --home $VAL1HOME --output json | jq -r ".balances[] | select(.denom == \"$FANTOKEN\") | .amount")
+# POST_UPGRADE_PROTOCOL_POOL_BALANCE_FANTOKEN=$($BIND q bank balances "$PROTOCOL_POOL_ADDR" --home $VAL1HOME --output json | jq -r".balances[] | select(.denom == \"$FANTOKEN\") | .amount")
+# POST_UPGRADE_DISTRIBUTION_MODULE_BALANCE_FANTOKEN=$($BIND q bank balances  "$DISTRIBUTION_MODULE_ADDR" --home $VAL1HOME --output json | jq -r ".balances[] | select(.denom == \"$FANTOKEN\") | .amount")
+# echo "PROTOCOL_POOL-FANTOKEN:$POST_UPGRADE_PROTOCOL_POOL_BALANCE_FANTOKEN"
+# echo "DISTRIBUTION-FANTOKEN:$POST_UPGRADE_DISTRIBUTION_MODULE_BALANCE_FANTOKEN"
  
 
 echo "PROTOCOL_POOL-BTSG:$POST_UPGRADE_PROTOCOL_POOL_BALANCE_BTSG"
-echo "PROTOCOL_POOL-FANTOKEN:$POST_UPGRADE_PROTOCOL_POOL_BALANCE_FANTOKEN"
+echo "DISTRIBUTION-BITSONG:$POST_UPGRADE_DISTRIBUTION_MODULE_BALANCE_BTSG"
 
 ## if protocol pool balances are not empty, exit 
-if [ -n "$POST_UPGRADE_PROTOCOL_POOL_BALANCE_BTSG" ] || [ -n "$POST_UPGRADE_PROTOCOL_POOL_BALANCE_FANTOKEN" ]; then
+if [ -n "$POST_UPGRADE_PROTOCOL_POOL_BALANCE_BTSG" ]; then
   echo "Protocol pool balances are not empty. Exiting..."
   exit 1
 fi
-
-echo "DISTRIBUTION-BITSONG:$POST_UPGRADE_DISTRIBUTION_MODULE_BALANCE_BTSG"
-echo "DISTRIBUTION-FANTOKEN:$POST_UPGRADE_DISTRIBUTION_MODULE_BALANCE_FANTOKEN"
-
 
 ## check block rewards go to distribution module accurately
 ABLOCK=$($BIND q distribution community-pool --home $VAL1HOME -o json | jq -r '.pool[0]' | sed 's/ubtsg$//' ) 
