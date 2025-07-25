@@ -21,6 +21,7 @@ VAL1_P2P_PORT=26656
  
 
 echo "Creating $BINARY instance for VAL1: home=$VAL1HOME | chain-id=$CHAINID | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
+trap 'pkill -f '"$BIND" EXIT
 
 # Clone the repository if it doesn't exist
 git clone https://github.com/permissionlessweb/go-bitsong

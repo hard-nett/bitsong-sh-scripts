@@ -1,6 +1,9 @@
 data
 bins
+# bin*
 go-bitsong/*
 test-keys*
 *.json
-bin*
+abstract
+.env
+target
