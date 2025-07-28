@@ -42,7 +42,7 @@ VAL2_P2P_PORT=26356
 
 echo "Creating $BINARY instance for VAL1_A: home=$VAL1HOME | chain-id=$CHAINID_A | p2p=:$VAL1_P2P_PORT | rpc=:$VAL1_RPC_PORT | profiling=:$VAL1_PPROF_PORT | grpc=:$VAL1_GRPC_PORT"
 echo "Creating $BINARY instance for VAL: home=$VAL2HOME | chain-id=$CHAINID_B | p2p=:$VAL2_P2P_PORT | rpc=:$VAL2_RPC_PORT | profiling=:$VAL2_PPROF_PORT | grpc=:$VAL2_GRPC_PORT"
-trap 'pkill -f '"$BIND" EXIT
+# trap 'pkill -f '"$BIND" EXIT
 
 
 defaultCoins="100000000000ubtsg"  # 100K
@@ -268,13 +268,23 @@ EOF
  
  
 
-## check balance 
-$BIND q bank balances $VAL1A_ADDR -o json
+## grant authz from val1 to user for (upload,init,execute,migrate)
+$BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgExecuteContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+sleep 6
+$BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgMigrateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+sleep 6
+$BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgStoreCode --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+sleep 6
+$BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+sleep 6
+ 
+
+
 # # Deploy on both chains
 echo "Deploying on both chains..."
 cd "$SCRIPTS_DIR" || exit  
 cat .env
-RUST_LOG=info cargo run --bin full_deploy
+RUST_LOG=info cargo run --bin init_contracts -- --authz-granter $USERAADDR
 
 echo "Preparation and deployment complete."
 

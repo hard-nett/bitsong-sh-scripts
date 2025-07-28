@@ -1,41 +1,27 @@
 use abstract_interface::{Abstract, AccountI};
 use abstract_std::objects::gov_type::GovernanceDetails;
-use cw_orch_daemon::{networks::BITSONG_2B, RUNTIME};
+use cw_orch_daemon::networks::BITSONG_2B;
 
-use clap::Parser;
 use cw_orch::prelude::*;
-use interchain_bitsong_accounts::{assert_wallet_balance, BITSONG_LOCAL_1, BITSONG_LOCAL_2};
 
 pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const DEPLOYMENT_DAO: &str =
-    "bitsong13hmdq0slwmff7sej79kfa8mgnx4rl46nj2fvmlgu6u32tz6vfqesdfq4vm";
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
+fn init_contracts(networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
     // let networks = RUNTIME.block_on(assert_wallet_balance(networks));
 
     for network in networks {
         let mut chain = DaemonBuilder::new(network.clone()).build()?;
-        chain
-            .sender_mut()
-            .set_authz_granter(&Addr::unchecked(DEPLOYMENT_DAO.to_string()));
+        // use Authz granted by Bitsong Deployment SubDAO
+        let dao = "bitsong13hmdq0slwmff7sej79kfa8mgnx4rl46nj2fvmlgu6u32tz6vfqesdfq4vm";
+        chain.sender_mut().set_authz_granter(&Addr::unchecked(dao));
 
         let monarch = chain.sender_addr();
-
-        let deployment = match Abstract::deploy_on(chain, ()) {
-            Ok(deployment) => {
-                // write_deployment(&deployment_status)?;
-                deployment
-            }
-            Err(e) => {
-                // write_deployment(&deployment_status)?;
-                return Err(e.into());
-            }
-        };
+        let mut abstr = Abstract::load_from(chain.clone())?;
 
         // Create the Abstract Account because it's needed for the fees for the dex module
         AccountI::create_default_account(
-            &deployment,
+            &abstr,
             GovernanceDetails::Monarchy {
                 monarch: monarch.to_string(),
             },
@@ -46,21 +32,12 @@ fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
     Ok(())
 }
 
-#[derive(Parser, Default, Debug)]
-#[command(author, version, about, long_about = None)]
-struct Arguments {
-    /// Network Id to deploy on
-    #[arg(short, long, value_delimiter = ' ', num_args = 1..)]
-    network_ids: Vec<String>,
-}
-
 fn main() {
     // or
     dotenv::from_path(".env").ok();
     let mnemonic = dotenv::var("LOCAL_MNEMONIC").unwrap();
     env_logger::init();
     println!("{:#?}", mnemonic);
-    // let args = Arguments::parse();
 
     let networks = vec![BITSONG_2B.into()];
 
@@ -70,7 +47,7 @@ fn main() {
     //     .map(|n| parse_network(n).unwrap().into())
     //     .collect::<Vec<_>>();
 
-    if let Err(ref err) = full_deploy(networks) {
+    if let Err(ref err) = init_contracts(networks) {
         log::error!("{}", err);
         err.chain()
             .skip(1)

@@ -24,9 +24,12 @@ cw2             = { version = "2.0.0" }
 cw20            = { version = "2.0.0" }
 cw20-base       = { version = "2.0.0", features = ["library"] }
 
+
+
 cw-address-like = { version = "2.0" }
 cw-asset        = { version = "4.0" }
 cw-ownable      = { version = "2.0" }
+
 
 protobuf  = { version = "2", features = ["with-bytes"] }
 schemars  = "0.8"
@@ -42,9 +45,11 @@ env = "1.0.1"
 log                   = "0.4.14"
 
 cw-orch-polytone = { package = "abstract-cw-orch-polytone", version = "5.0.0" }
+cw-blob = "0.2.0"
 polytone         = { package = "abstract-polytone", version = "2.0.0" }
 polytone-note    = { package = "abstract-polytone-note", version = "4.0.0" }
 
+cosmrs = "0.22.0"
 cw-orch               = { version = "0.27.0" , features = ["daemon"]}
 cw-orch-clone-testing = { version = "0.9.0" }
 cw-orch-daemon        = { version = "0.28.0" }

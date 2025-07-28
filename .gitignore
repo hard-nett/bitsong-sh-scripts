@@ -4,6 +4,8 @@ bins
 go-bitsong/*
 test-keys*
 *.json
+*.wasm
 abstract
 .env
 target
+artifacts
