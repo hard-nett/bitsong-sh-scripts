@@ -1,1 +1,0 @@
-# Interchain Bitsong Abstract Accounts 

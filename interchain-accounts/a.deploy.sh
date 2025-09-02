@@ -3,6 +3,39 @@ BIND=bitsongd
 CHAINID_A=test-1
 CHAINID_B=test-2
 
+# Authz feature flag - can be overridden with --enable-authz or --disable-authz
+USE_AUTHZ=true
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --enable-authz)
+      USE_AUTHZ=true
+      shift
+      ;;
+    --disable-authz)
+      USE_AUTHZ=false
+      shift
+      ;;
+    --help)
+      echo "Usage: $0 [--enable-authz|--disable-authz] [--help]"
+      echo ""
+      echo "Options:"
+      echo "  --enable-authz    Enable authz grants and usage (default)"
+      echo "  --disable-authz   Disable authz grants and usage"
+      echo "  --help            Show this help message"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Use --help for usage information"
+      exit 1
+      ;;
+  esac
+done
+
+echo "AuthZ feature: $([ "$USE_AUTHZ" = "true" ] && echo "ENABLED" || echo "DISABLED")"
+
 # setup test keys.
 VAL=val
 RELAYER=relayer
@@ -264,19 +297,25 @@ STATE_FILE=./state.json
 ARTIFACTS_DIR=../abstract/framework/artifacts
 LOGGING=debug
 CW_ORCH_SERIALIZE_JSON=true
+USE_AUTHZ=$USE_AUTHZ
 EOF
  
  
 
 ## grant authz from val1 to user for (upload,init,execute,migrate)
-$BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgExecuteContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
-sleep 6
-$BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgMigrateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
-sleep 6
-$BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgStoreCode --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
-sleep 6
-$BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
-sleep 6
+if [ "$USE_AUTHZ" = "true" ]; then
+  echo "Setting up AuthZ grants..."
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgExecuteContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+  sleep 6
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgMigrateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+  sleep 6
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgStoreCode --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+  sleep 6
+  $BIND tx authz grant $VAL1A_ADDR  generic --msg-type=/cosmwasm.wasm.v1.MsgInstantiateContract --from $USERAADDR --fees 1000ubtsg --chain-id $CHAINID_A --home $VAL1HOME -y
+  sleep 6
+else
+  echo "Skipping AuthZ grants (disabled)"
+fi
  
 
 
@@ -284,7 +323,13 @@ sleep 6
 echo "Deploying on both chains..."
 cd "$SCRIPTS_DIR" || exit  
 cat .env
-RUST_LOG=info cargo run --bin init_contracts -- --authz-granter $USERAADDR
+if [ "$USE_AUTHZ" = "true" ]; then
+  echo "Running with AuthZ granter: $USERAADDR"
+  RUST_LOG=info cargo run --bin init_contracts -- --authz-granter $USERAADDR
+else
+  echo "Running without AuthZ"
+  RUST_LOG=info cargo run --bin init_contracts
+fi
 
 echo "Preparation and deployment complete."
 

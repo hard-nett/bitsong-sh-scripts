@@ -1,14 +1,33 @@
-# Abstract Accounts 
+# Interchain Bitsong Abstract Accounts
 
-## Goals
+## Usage
 
-1. Deploy 2 Chain Instances & Relayer
-2. Deploy Abstract on both
-3. Create Interchain Abstract Account 
-4. Install Modules For Abstract Accounts 
-5. Use Cross Chain Functions For Abstract Accounts 
+This project supports two deployment scenarios:
 
-## Deploy
-```sh
-sh a.deploy.sh
+### With AuthZ (Currently broken. Issue tracked [here](https://github.com/AbstractSDK/abstract/issues/569))
+```bash
+# Run deployment with AuthZ grants
+sh a.deploy.sh --enable-authz
+```
+
+### Without AuthZ (works as expected)
+```bash
+# Run deployment without AuthZ grants
+sh a.deploy.sh --disable-authz
+```
+
+## Manual Rust Scripts
+
+You can also run the Rust scripts directly:
+
+### With AuthZ
+```bash
+cd ibaa-scripts && cargo run --bin init_contracts -- --authz-granter <GRANTER_ADDRESS>
+cd ibaa-scripts && cargo run --bin full_deploy -- --authz-granter <GRANTER_ADDRESS>
+```
+
+### Without AuthZ
+```bash
+cd ibaa-scripts && cargo run --bin init_contracts
+cd ibaa-scripts && cargo run --bin full_deploy
 ```

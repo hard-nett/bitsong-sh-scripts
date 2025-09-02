@@ -13,16 +13,26 @@ pub const ABSTRACT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const CW_BLOB: &str = "cw:blob";
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn init_contracts(mut networks: Vec<ChainInfoOwned>, authz_granter: &String) -> anyhow::Result<()> {
+fn init_contracts(mut networks: Vec<ChainInfoOwned>, authz_granter: &Option<String>) -> anyhow::Result<()> {
     // let networks = RUNTIME.block_on(assert_wallet_balance(networks));
 
     for network in networks {
         let mut chain = DaemonBuilder::new(network.clone()).build()?;
-        // use Authz granted by Bitsong Deployment SubDAO
-        let admin = Addr::unchecked(authz_granter.to_string());
-        chain
-            .sender_mut()
-            .set_authz_granter(&Addr::unchecked(authz_granter));
+        
+        // Determine admin address based on authz usage
+        let admin = match authz_granter {
+            Some(granter) => {
+                println!("Using AuthZ granter: {}", granter);
+                chain
+                    .sender_mut()
+                    .set_authz_granter(&Addr::unchecked(granter));
+                Addr::unchecked(granter.to_string())
+            },
+            None => {
+                println!("Using direct sender (no AuthZ)");
+                chain.sender_addr()
+            }
+        };
 
         let monarch = chain.sender_addr();
         let mut abstr = Abstract::store_on(chain.clone())?;
@@ -96,13 +106,13 @@ fn init_contracts(mut networks: Vec<ChainInfoOwned>, authz_granter: &String) -> 
 #[derive(Parser, Default, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Arguments {
-    /// Network Id to deploy on
+    /// AuthZ granter address (optional - if not provided, direct signing is used)
     #[arg(short, long)]
-    authz_granter: String,
+    authz_granter: Option<String>,
 }
 
 fn main() {
-    // or
+    // Load environment variables
     dotenv::from_path(".env").ok();
     let mnemonic = dotenv::var("LOCAL_MNEMONIC").unwrap();
     env_logger::init();
@@ -111,7 +121,16 @@ fn main() {
 
     let networks = vec![BITSONG_LOCAL_1.into()];
 
-    let authz_granter = args.authz_granter;
+    // Determine authz usage from environment variable or command line
+    let use_authz = dotenv::var("USE_AUTHZ").unwrap_or_else(|_| "false".to_string());
+    let authz_granter = if use_authz == "true" && args.authz_granter.is_none() {
+        // If USE_AUTHZ=true but no CLI arg provided, this is an error for init_contracts
+        eprintln!("Error: USE_AUTHZ=true but --authz-granter not provided");
+        std::process::exit(1);
+    } else {
+        args.authz_granter
+    };
+    
     // let dao = "bitsong13hmdq0slwmff7sej79kfa8mgnx4rl46nj2fvmlgu6u32tz6vfqesdfq4vm";
 
     if let Err(ref err) = init_contracts(networks, &authz_granter) {

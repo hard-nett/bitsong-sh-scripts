@@ -11,14 +11,21 @@ pub const DEPLOYMENT_DAO: &str =
     "bitsong13hmdq0slwmff7sej79kfa8mgnx4rl46nj2fvmlgu6u32tz6vfqesdfq4vm";
 
 // Run "cargo run --example download_wasms" in the `abstract-interfaces` package before deploying!
-fn full_deploy(mut networks: Vec<ChainInfoOwned>) -> anyhow::Result<()> {
+fn full_deploy(mut networks: Vec<ChainInfoOwned>, authz_granter: Option<String>) -> anyhow::Result<()> {
     // let networks = RUNTIME.block_on(assert_wallet_balance(networks));
 
     for network in networks {
         let mut chain = DaemonBuilder::new(network.clone()).build()?;
-        chain
-            .sender_mut()
-            .set_authz_granter(&Addr::unchecked(DEPLOYMENT_DAO.to_string()));
+        
+        // Conditionally set authz granter based on environment or parameter
+        if let Some(granter) = &authz_granter {
+            println!("Using AuthZ granter: {}", granter);
+            chain
+                .sender_mut()
+                .set_authz_granter(&Addr::unchecked(granter.to_string()));
+        } else {
+            println!("Using direct sender (no AuthZ)");
+        }
 
         let monarch = chain.sender_addr();
 
@@ -52,17 +59,30 @@ struct Arguments {
     /// Network Id to deploy on
     #[arg(short, long, value_delimiter = ' ', num_args = 1..)]
     network_ids: Vec<String>,
+    
+    /// AuthZ granter address (optional - if not provided, direct signing is used)
+    #[arg(short, long)]
+    authz_granter: Option<String>,
 }
 
 fn main() {
-    // or
+    // Load environment variables
     dotenv::from_path(".env").ok();
     let mnemonic = dotenv::var("LOCAL_MNEMONIC").unwrap();
     env_logger::init();
     println!("{:#?}", mnemonic);
-    // let args = Arguments::parse();
+    
+    let args = Arguments::parse();
 
-    let networks = vec![BITSONG_2B.into()];
+    // Determine authz usage from environment variable or command line
+    let use_authz = dotenv::var("USE_AUTHZ").unwrap_or_else(|_| "false".to_string());
+    let authz_granter = if use_authz == "true" {
+        args.authz_granter.or_else(|| Some(DEPLOYMENT_DAO.to_string()))
+    } else {
+        args.authz_granter  // Use CLI arg even if env says false (CLI overrides env)
+    };
+
+    let networks = vec![BITSONG_LOCAL_1.into(), BITSONG_LOCAL_2.into()];
 
     // let networks = args
     //     .network_ids
@@ -70,7 +90,7 @@ fn main() {
     //     .map(|n| parse_network(n).unwrap().into())
     //     .collect::<Vec<_>>();
 
-    if let Err(ref err) = full_deploy(networks) {
+    if let Err(ref err) = full_deploy(networks, authz_granter) {
         log::error!("{}", err);
         err.chain()
             .skip(1)
