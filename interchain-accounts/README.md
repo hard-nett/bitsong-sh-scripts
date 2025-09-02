@@ -1,5 +1,18 @@
 # Interchain Bitsong Abstract Accounts
 
+This tests spins up two local testnet instances, and runs the workflow for deploying the abstract account framework. 
+
+Once deployed, it will confirm contracts can be made use of by create a default monarch account
+
+### TODO:
+- implement support for bs-account deployment & test integration
+- simulate use of various workflows:
+    - propose, approve, reject, yank modules
+    - claiming namespaces
+    - using ans-host to register:
+        - common assets on blockchain
+        - contracts related to specific protocols
+        - ibc-channel data
 ## Usage
 
 This project supports two deployment scenarios:

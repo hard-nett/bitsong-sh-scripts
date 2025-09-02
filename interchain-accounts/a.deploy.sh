@@ -262,6 +262,8 @@ sleep 15
 # A. DEPLOY BITSONG ACCOUNTS 
 ####################################################################
 
+# TODO: deploy the bitsong account ownership tokens to test using tokenized ownership-
+
 #####################################################################
 # B. DEPLOY ABSTRACT ON BOTH CHAINS
 ####################################################################
