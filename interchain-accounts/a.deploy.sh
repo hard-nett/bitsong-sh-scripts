@@ -327,10 +327,10 @@ cd "$SCRIPTS_DIR" || exit
 cat .env
 if [ "$USE_AUTHZ" = "true" ]; then
   echo "Running with AuthZ granter: $USERAADDR"
-  RUST_LOG=info cargo run --bin init_contracts -- --authz-granter $USERAADDR
+  RUST_LOG=info cargo run --bin full_deploy -- --authz-granter "$USERAADDR"
 else
   echo "Running without AuthZ"
-  RUST_LOG=info cargo run --bin init_contracts
+  RUST_LOG=info cargo run --bin full_deploy
 fi
 
 echo "Preparation and deployment complete."

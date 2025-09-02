@@ -45,3 +45,5 @@ cd ibaa-scripts && cargo run --bin full_deploy -- --authz-granter <GRANTER_ADDRE
 cd ibaa-scripts && cargo run --bin init_contracts
 cd ibaa-scripts && cargo run --bin full_deploy
 ```
+
+be sure to `pkill -f bitsongd` once complete (make sure you dont kill any production services!!)
