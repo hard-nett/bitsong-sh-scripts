@@ -13,6 +13,7 @@ Once deployed, it will confirm contracts can be made use of by create a default 
         - common assets on blockchain
         - contracts related to specific protocols
         - ibc-channel data
+- integration with x/smart-accounts
 ## Usage
 
 This project supports two deployment scenarios:
