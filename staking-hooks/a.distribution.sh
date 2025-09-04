@@ -31,18 +31,6 @@ VAL2_PROXY_APP_PORT=9395
 VAL2_RPC_PORT=26357
 VAL2_PPROF_PORT=6361
 VAL2_P2P_PORT=26356
-# Define the new ports for val3
-VAL3_API_PORT=1319
-VAL3_GRPC_PORT=9398
-VAL3_GRPC_WEB_PORT=9399
-VAL3_PROXY_APP_PORT=9397
-VAL3_RPC_PORT=26457
-VAL3_PPROF_PORT=6461
-VAL3_P2P_PORT=26456
-
-# upgrade details
-UPGRADE_VERSION_TITLE="v0.20.0"
-UPGRADE_VERSION_TAG="v020"
 
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
@@ -56,9 +44,7 @@ echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
 echo "»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»"
 echo "««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««««"
-
-
-
+echo "performing sanity tests"
 rm -rf $VAL1HOME $VAL2HOME 
 git clone https://github.com/permissionlessweb/go-bitsong
 cd go-bitsong
@@ -271,9 +257,9 @@ sleep 1
 # we make use of a bitsong app version we know is broken.
 ####################################################################
 echo "performing insanity tests"
-sleep 6
+pkill -f bitsongd
 cd go-bitsong || exit
-git checkout v0.24.0.BROKEN
+git checkout v0.24.BROKEN
 make install 
 cd ../
 bitsongd start --home $VAL2HOME &
@@ -293,4 +279,4 @@ DEL2_REWARD=$($BIND q distribution rewards $DEL2ADDR --home $VAL1HOME --output j
 echo "DEL1_REWARD: $DEL1_REWARD"
 echo "DEL2_REWARD: $DEL2_REWARD"
 pkill -f bitsongd
-bitsongd export --for-zero-height --home $VAL1HOME 
+# bitsongd export --for-zero-height --home $VAL1HOME 
