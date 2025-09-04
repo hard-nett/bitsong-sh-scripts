@@ -179,24 +179,14 @@ $BIND start --home $VAL1HOME &
 VAL1_PID=$!
 echo "VAL1_PID: $VAL1_PID"
 sleep 7
-
-
 ####################################################################
 # B. SLASH
 ####################################################################
- 
 bitsongd start --home $VAL2HOME &
 VAL2_PID=$!
 echo "VAL2_PID: $VAL2_PID"
 sleep 7
-
-
-
-
 #!/bin/bash
-
-
-
 # Create JSON file in the validator's home directory
 cat <<EOF > "$VAL2HOME/validator.json"
 {
@@ -216,35 +206,27 @@ cat <<EOF > "$VAL2HOME/validator.json"
   "min-self-delegation": "1"
 }
 EOF
-
 echo "Validator JSON created at $VAL2HOME/validator.json"
 bitsongd tx staking create-validator $VAL2HOME/validator.json --gas auto --gas-adjustment 1.5 --fees="600ubtsg"  --chain-id=$CHAINID --home $VAL2HOME --from=$VAL2 -y
 sleep 6
-# if this value is the same as val1, lets choose the validator[0]
 VAL1_OP_ADDR=$(jq -r '.body.messages[0].validator_address' $VAL1HOME/config/gentx/gentx-*.json)
 VAL2_OP_ADDR=$($BIND q staking validators --home $VAL2HOME -o json | jq -r ".validators[] | select(.operator_address!= \"$VAL1_OP_ADDR\") |.operator_address" | head -1)
-# create delegation to both validators from both delegators 
 $BIND tx staking delegate $VAL1_OP_ADDR 99000000ubtsg --from $DEL1 --gas auto  --fees 200ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -y 
 $BIND tx staking delegate $VAL2_OP_ADDR 400000000ubtsg --from $DEL2 --gas auto --fees 800ubtsg --gas-adjustment 1.4 --chain-id $CHAINID --home $VAL2HOME -y
 sleep 6
 $BIND tx staking delegate $VAL2_OP_ADDR 99000000ubtsg --from $DEL1 --gas auto  --fees 800ubtsg --gas-adjustment 1.2 --chain-id $CHAINID --home $VAL1HOME -y 
-# stop bitsongd process for val2 for 1 block 
 kill $VAL1_PID
-# slash & jail & restart val1
 sleep 24
 $BIND start --home $VAL1HOME &
 sleep 10
-## THESE WILL BREAK IF STAKING HOOKS NO GOOD
 DEL1_QUERY=$($BIND q staking delegation $DEL1ADDR $VAL1_OP_ADDR --home $VAL1HOME -o json)
 DEL2_QUERY=$($BIND q staking delegation $DEL2ADDR $VAL2_OP_ADDR --home $VAL2HOME -o json)
 DEL1_REWARD=$($BIND q distribution rewards $DEL1ADDR --home $VAL1HOME --output json)
 DEL2_REWARD=$($BIND q distribution rewards $DEL2ADDR --home $VAL1HOME --output json)
-
 VAL1_DEL1_SHARES=$(echo "$DEL1_QUERY" | jq -r '.delegation.shares')
 VAL1_DEL1_BTSG=$(echo "$DEL1_QUERY" | jq -r '.balance.amount')
 VAL2_DEL2_SHARES=$(echo "$DEL2_QUERY" | jq -r '.delegation.shares')
 VAL2_DEL2_BTSG=$(echo "$DEL2_QUERY" | jq -r '.balance.amount')
-
 VAL1_OUTSTANDING_REWARDS=$($BIND q distribution validator-outstanding-rewards $VAL1_OP_ADDR --home $VAL1HOME -o json | jq -r '.rewards[] | select(.denom == "ubtsg") | .amount')
 VAL1_TOTAL_SHARES=$($BIND q staking validator $VAL1_OP_ADDR --home $VAL1HOME -o json | jq -r '.delegator_shares')
 VAL1_TOTAL_TOKENS=$($BIND q staking validator $VAL1_OP_ADDR --home $VAL1HOME -o json | jq -r '.tokens')
@@ -255,15 +237,12 @@ DEL1_PRE_UPGR_BALANCE=$($BIND q bank balances $DEL1ADDR --home $VAL2HOME --outpu
 DEL2_PRE_UPGR_BALANCE=$($BIND q bank balances $DEL2ADDR --home $VAL2HOME --output json | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
 VAL1_PRE_UPGR_BALANCE=$($BIND q bank balances $VAL1ADDR --home $VAL1HOME --output json | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
 VAL2_PRE_UPGR_BALANCE=$($BIND q bank balances $VAL2ADDR --home $VAL1HOME --output json | jq -r '.balances[] | select(.denom == "ubtsg") | .amount')
-
-# get balances for each addr prior to upgrade
 echo "DEL1_REWARD: $DEL1_REWARD"
 echo "DEL2_REWARD: $DEL2_REWARD"
 echo "VAL1_OP_ADDR: $VAL1_OP_ADDR"
 echo "VAL2_OP_ADDR: $VAL2_OP_ADDR"
 echo "DEL1ADDR: $DEL1ADDR"
 echo "DEL2ADDR: $DEL2ADDR"
-
 echo "DEL1_QUERY: $DEL1_QUERY"
 echo "DEL2_QUERY: $DEL2_QUERY"
 echo "VAL1_DEL1_SHARES: $VAL1_DEL1_SHARES"
@@ -282,55 +261,36 @@ echo "VAL1_PRE_UPGR_BALANCE:$VAL1_PRE_UPGR_BALANCE"
 echo "VAL2_PRE_UPGR_BALANCE:$VAL2_PRE_UPGR_BALANCE"
 echo "VAL2_PRE_UPGR_BALANCE:$VAL2_PRE_UPGR_BALANCE"
 sleep 1
-
 if [ -z "$VAL1_DEL1_SHARES" ] || [ -z "$VAL1_DEL1_BTSG" ] || [ -z "$VAL2_DEL2_SHARES" ] || [ -z "$VAL2_DEL2_BTSG" ]; then
   echo "Error: unable to extract delegation information."
   exit 1
 fi
 sleep 1
-
 ####################################################################
 # C. CONFIRM SLASH BREAKS WITH BAD APP VERSION:
 # we make use of a bitsong app version we know is broken.
 ####################################################################
 echo "performing insanity tests"
 sleep 6
-
 cd go-bitsong || exit
-# Checkout the version of go-bitsong that doesnt submit slashing hooks
 git checkout v0.24.0.BROKEN
 make install 
 cd ../
-
 bitsongd start --home $VAL2HOME &
 VAL2_PID=$!
 echo "VAL2_PID: $VAL2_PID"
-
 bitsongd start --home $VAL1HOME &
 VAL1_PID=$!
 echo "VAL1_PID: $VAL1_PID"
 sleep 12
-
-
-# stop bitsongd process for val2 for 1 block 
 kill $VAL1_PID
-
-# slash & jail val1
 sleep 24
-
-# restart val1
 $BIND start --home $VAL1HOME &
-sleep 10
-
-
+sleep 12
 ### CONFIRM HOOKS ARE BROKEN
 DEL1_REWARD=$($BIND q distribution rewards $DEL1ADDR --home $VAL1HOME --output json)
 DEL2_REWARD=$($BIND q distribution rewards $DEL2ADDR --home $VAL1HOME --output json)
-
 echo "DEL1_REWARD: $DEL1_REWARD"
 echo "DEL2_REWARD: $DEL2_REWARD"
-
-
-## stop service run export function, asserting issue is resolved via crisis invariants
 pkill -f bitsongd
 bitsongd export --for-zero-height --home $VAL1HOME 
